@@ -348,11 +348,12 @@ export class AudioEngine {
   private updateMediaSession(verse: VerseAudioData): void {
     if (!("mediaSession" in navigator)) return;
 
+    const isBismillah = verse.verseKey === "bismillah";
     const [surah, ayah] = verse.verseKey.split(":");
     navigator.mediaSession.metadata = new MediaMetadata({
-      title: `Ayet ${ayah}`,
+      title: isBismillah ? "Bismillahirrahmanirrahim" : `Ayet ${ayah}`,
       artist: "Mahfuz",
-      album: `Sure ${surah}`,
+      album: isBismillah ? "Kuran-ı Kerim" : `Sure ${surah}`,
     });
 
     navigator.mediaSession.setActionHandler("play", () => this.play());
