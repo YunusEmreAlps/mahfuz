@@ -5,6 +5,7 @@ import { signOut } from "~/lib/auth-client";
 import { AudioProvider, AudioBar } from "~/components/audio";
 import { useAudioStore } from "~/stores/useAudioStore";
 import { CommandPalette } from "~/components/CommandPalette";
+import { HeaderSurahPicker } from "~/components/HeaderSurahPicker";
 import type { Chapter } from "@mahfuz/shared/types";
 import { TOTAL_PAGES } from "@mahfuz/shared/constants";
 
@@ -30,6 +31,7 @@ const BOTTOM_ITEMS = [
 
 function AppLayout() {
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const { session } = Route.useRouteContext();
   const router = useRouter();
   const audioVisible = useAudioStore((s) => s.isVisible);
@@ -56,6 +58,7 @@ function AppLayout() {
   const chapter = surahId
     ? queryClient.getQueryData<Chapter>(["chapter", surahId])
     : null;
+  const allChapters = queryClient.getQueryData<Chapter[]>(["chapters"]);
 
   // Detect page route
   const pageMatch = matches.find((m) => m.routeId === "/_app/page/$pageNumber");
@@ -94,77 +97,72 @@ function AppLayout() {
   return (
     <div className="flex h-screen flex-col bg-[var(--theme-bg)]">
       {/* Header */}
-      <header className="glass sticky top-0 z-30 border-b border-[var(--theme-border)] px-4 py-2.5 sm:px-6">
-        <div className="flex items-center justify-between">
-          {/* Left: Logo + Desktop nav + Chapter/page context */}
-          <div className="flex items-center gap-1">
+      <header className="glass sticky top-0 z-30 h-[88px] border-b border-[var(--theme-border)] px-4 sm:px-6">
+        <div className="relative flex h-full items-center justify-between">
+          {/* Left: Logo + Chapter/page context */}
+          <div className="flex min-w-0 items-center gap-1">
             {/* Logo */}
-            <Link to="/" className="mr-2 flex items-center gap-2 sm:mr-3">
-              <span className="arabic-text text-lg leading-none text-primary-600">محفوظ</span>
-              <span className="hidden text-[13px] font-semibold text-[var(--theme-text)] sm:inline">
-                Mahfuz
-              </span>
+            <Link to="/" className="mr-2 flex shrink-0 items-center gap-2 sm:mr-3">
+              <img src="/images/mahfuz-logo.svg" alt="Mahfuz" className="h-10 w-auto" />
             </Link>
 
-            {/* Desktop horizontal nav */}
-            <nav className="hidden items-center gap-0.5 lg:flex">
-              {NAV_ITEMS.map((item) => (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[var(--theme-text-secondary)] transition-colors hover:bg-[var(--theme-hover-bg)] hover:text-[var(--theme-text)]"
-                  activeProps={{
-                    className:
-                      "flex items-center gap-1.5 rounded-lg px-2 py-1.5 bg-primary-600/10 text-primary-700 transition-colors",
-                  }}
-                  title={item.label}
-                >
-                  <item.icon />
-                  <span className="hidden text-[12px] font-medium xl:inline">
-                    {item.label}
-                  </span>
-                </Link>
-              ))}
-            </nav>
-
-            {/* Chapter prev/next (surah detail) */}
+            {/* Chapter/page prev/next (surah detail) */}
             {chapter && (
-              <div className="flex items-center gap-1 border-l border-[var(--theme-border)] pl-2 ml-2">
-                {chapter.id > 1 && (
-                  <Link
-                    to="/surah/$surahId"
-                    params={{ surahId: String(chapter.id - 1) }}
-                    className="rounded-md p-1 text-[var(--theme-text-tertiary)] transition-colors hover:bg-[var(--theme-hover-bg)] hover:text-[var(--theme-text)]"
-                    aria-label="Önceki sure"
-                  >
-                    <ChevronLeftIcon />
-                  </Link>
-                )}
-                <div className="flex items-center gap-2">
+              <div className="relative flex items-center border-l border-[var(--theme-border)] pl-2 ml-2">
+                <Link
+                  to="/surah/$surahId"
+                  params={{ surahId: String(Math.max(1, chapter.id - 1)) }}
+                  className={`shrink-0 rounded-md p-1 transition-colors hover:bg-[var(--theme-hover-bg)] hover:text-[var(--theme-text)] ${chapter.id > 1 ? "text-[var(--theme-text-tertiary)]" : "pointer-events-none invisible"}`}
+                  aria-label="Önceki sure"
+                >
+                  <ChevronLeftIcon />
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setPickerOpen((v) => !v)}
+                  className="flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg px-1 py-0.5 transition-colors hover:bg-[var(--theme-hover-bg)]"
+                >
                   <span className="text-[12px] font-medium text-[var(--theme-text-tertiary)]">
                     {chapter.id}
                   </span>
                   <span className="arabic-text text-base leading-none text-[var(--theme-text)]">
                     {chapter.name_arabic}
                   </span>
-                  <div className="hidden flex-col sm:flex">
-                    <span className="text-[13px] font-medium leading-tight text-[var(--theme-text-secondary)]">
-                      {chapter.translated_name.name}
-                    </span>
-                    <span className="text-[11px] leading-tight text-[var(--theme-text-tertiary)]">
-                      {chapter.name_simple}
-                    </span>
-                  </div>
-                </div>
-                {chapter.id < 114 && (
-                  <Link
-                    to="/surah/$surahId"
-                    params={{ surahId: String(chapter.id + 1) }}
-                    className="rounded-md p-1 text-[var(--theme-text-tertiary)] transition-colors hover:bg-[var(--theme-hover-bg)] hover:text-[var(--theme-text)]"
-                    aria-label="Sonraki sure"
+                  <span className="hidden truncate text-[13px] font-medium text-[var(--theme-text-secondary)] sm:inline">
+                    {chapter.translated_name.name}
+                  </span>
+                  <svg
+                    className={`h-3 w-3 shrink-0 text-[var(--theme-text-tertiary)] transition-transform ${pickerOpen ? "rotate-180" : ""}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
                   >
-                    <ChevronRightIcon />
-                  </Link>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                <Link
+                  to="/surah/$surahId"
+                  params={{ surahId: String(Math.min(114, chapter.id + 1)) }}
+                  className={`shrink-0 rounded-md p-1 transition-colors hover:bg-[var(--theme-hover-bg)] hover:text-[var(--theme-text)] ${chapter.id < 114 ? "text-[var(--theme-text-tertiary)]" : "pointer-events-none invisible"}`}
+                  aria-label="Sonraki sure"
+                >
+                  <ChevronRightIcon />
+                </Link>
+
+                {pickerOpen && allChapters && (
+                  <HeaderSurahPicker
+                    currentChapterId={chapter.id}
+                    chapters={allChapters}
+                    onSelect={(id) => {
+                      setPickerOpen(false);
+                      router.navigate({
+                        to: "/surah/$surahId",
+                        params: { surahId: String(id) },
+                      });
+                    }}
+                    onClose={() => setPickerOpen(false)}
+                  />
                 )}
               </div>
             )}
@@ -198,6 +196,27 @@ function AppLayout() {
               </div>
             )}
           </div>
+
+          {/* Center: Desktop nav */}
+          <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-0.5 lg:flex">
+            {NAV_ITEMS.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[var(--theme-text-secondary)] transition-colors hover:bg-[var(--theme-hover-bg)] hover:text-[var(--theme-text)]"
+                activeProps={{
+                  className:
+                    "flex items-center gap-1.5 rounded-lg px-2 py-1.5 bg-primary-600/10 text-primary-700 transition-colors",
+                }}
+                title={item.label}
+              >
+                <item.icon />
+                <span className="text-[12px] font-medium">
+                  {item.label}
+                </span>
+              </Link>
+            ))}
+          </nav>
 
           {/* Right: Search + Settings + User */}
           <div className="flex items-center gap-1">

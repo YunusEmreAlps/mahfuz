@@ -55,10 +55,12 @@ export const Route = createRootRouteWithContext<RouterContext>()({
         crossOrigin: "anonymous",
       },
       { rel: "manifest", href: "/manifest.json" },
-      { rel: "icon", href: "/icons/icon-192.png", type: "image/png" },
+      { rel: "icon", href: "/images/mahfuz-logo.svg", type: "image/svg+xml" },
+      { rel: "icon", href: "/icons/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { rel: "icon", href: "/icons/favicon-16.png", sizes: "16x16", type: "image/png" },
       {
         rel: "apple-touch-icon",
-        href: "/icons/icon-512.png",
+        href: "/icons/apple-touch-icon.png",
       },
     ],
     scripts: [
