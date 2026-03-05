@@ -100,8 +100,6 @@ function SurahView() {
   // Fullscreen support for Mushaf mode
   const mushafContainerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showFsButton, setShowFsButton] = useState(true);
-  const hideTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
     const onChange = () => {
@@ -111,22 +109,11 @@ function SurahView() {
     return () => document.removeEventListener("fullscreenchange", onChange);
   }, []);
 
-  // Auto-hide fullscreen button after 3s of inactivity
+  // Exit fullscreen when switching away from mushaf
   useEffect(() => {
-    if (viewMode !== "mushaf") return;
-    const resetTimer = () => {
-      setShowFsButton(true);
-      clearTimeout(hideTimerRef.current);
-      hideTimerRef.current = setTimeout(() => setShowFsButton(false), 3000);
-    };
-    resetTimer();
-    window.addEventListener("pointermove", resetTimer);
-    window.addEventListener("pointerdown", resetTimer);
-    return () => {
-      clearTimeout(hideTimerRef.current);
-      window.removeEventListener("pointermove", resetTimer);
-      window.removeEventListener("pointerdown", resetTimer);
-    };
+    if (viewMode !== "mushaf" && document.fullscreenElement) {
+      document.exitFullscreen();
+    }
   }, [viewMode]);
 
   const toggleFullscreen = useCallback(() => {
@@ -185,8 +172,26 @@ function SurahView() {
   const hasPrev = chapterId > 1;
   const hasNext = chapterId < TOTAL_CHAPTERS;
 
+  const fullscreenIcon = (
+    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="2 6 2 2 6 2" />
+      <polyline points="18 6 18 2 14 2" />
+      <polyline points="2 14 2 18 6 18" />
+      <polyline points="18 14 18 18 14 18" />
+    </svg>
+  );
+
+  const exitFullscreenIcon = (
+    <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="6 2 6 6 2 6" />
+      <polyline points="14 2 14 6 18 6" />
+      <polyline points="6 18 6 14 2 14" />
+      <polyline points="14 18 14 14 18 14" />
+    </svg>
+  );
+
   return (
-    <div ref={mushafContainerRef} className="mx-auto max-w-[680px] px-5 py-8 sm:px-6 sm:py-10 bg-[var(--theme-bg)]">
+    <div className="mx-auto max-w-[680px] px-5 py-8 sm:px-6 sm:py-10">
       <SurahHeader
         chapter={chapter}
         onPlay={handlePlaySurah}
@@ -197,6 +202,17 @@ function SurahView() {
       <div className="mb-6 flex items-center justify-between">
         <SegmentedControl options={VIEW_MODE_OPTIONS} value={viewMode} onChange={setViewMode} />
         <div className="flex items-center gap-2">
+          {viewMode === "mushaf" && (
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              aria-label="Tam ekran"
+              className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-[var(--theme-hover-bg)]"
+              style={{ color: "var(--theme-text-tertiary)" }}
+            >
+              {fullscreenIcon}
+            </button>
+          )}
           <span className="text-[12px] text-[var(--theme-text-tertiary)]">
             Sayfa {chapter.pages[0]}-{chapter.pages[1]}
           </span>
@@ -204,15 +220,37 @@ function SurahView() {
         </div>
       </div>
 
-      {/* Bismillah */}
-      {chapter.bismillah_pre && <Bismillah />}
+      {/* Mushaf fullscreen container */}
+      <div
+        ref={mushafContainerRef}
+        className={isFullscreen ? "h-screen overflow-y-auto bg-[var(--theme-bg)] px-5 py-8 sm:px-6" : ""}
+      >
+        {/* Exit fullscreen button — inside container so it's visible in fullscreen */}
+        {isFullscreen && (
+          <button
+            type="button"
+            onClick={toggleFullscreen}
+            aria-label="Tam ekrandan çık"
+            className="fixed top-4 right-4 z-50 flex h-10 w-10 items-center justify-center rounded-xl backdrop-blur-xl transition-colors hover:bg-[var(--theme-hover-bg)]"
+            style={{
+              background: "color-mix(in srgb, var(--theme-hover-bg) 80%, transparent)",
+              color: "var(--theme-text-tertiary)",
+            }}
+          >
+            {exitFullscreenIcon}
+          </button>
+        )}
 
-      {/* Verses */}
-      <VerseList
-        verses={versesData.verses}
-        showTranslation={showTranslation}
-        onPlayFromVerse={handlePlayFromVerse}
-      />
+        {/* Bismillah */}
+        {chapter.bismillah_pre && <Bismillah />}
+
+        {/* Verses */}
+        <VerseList
+          verses={versesData.verses}
+          showTranslation={showTranslation}
+          onPlayFromVerse={handlePlayFromVerse}
+        />
+      </div>
 
       {/* Pagination */}
       <Pagination pagination={versesData.pagination} onPageChange={setPage} />
@@ -244,38 +282,6 @@ function SurahView() {
           <span />
         )}
       </div>
-
-      {/* Fullscreen toggle — Mushaf mode only */}
-      {viewMode === "mushaf" && (
-        <button
-          type="button"
-          onClick={toggleFullscreen}
-          aria-label={isFullscreen ? "Tam ekrandan çık" : "Tam ekran"}
-          className="fixed bottom-6 right-6 z-50 flex h-11 w-11 items-center justify-center rounded-full backdrop-blur-xl transition-opacity duration-300"
-          style={{
-            background: "var(--theme-hover-bg)",
-            color: "var(--theme-text-tertiary)",
-            opacity: showFsButton ? 0.85 : 0,
-            pointerEvents: showFsButton ? "auto" : "none",
-          }}
-        >
-          {isFullscreen ? (
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="6 2 6 6 2 6" />
-              <polyline points="14 2 14 6 18 6" />
-              <polyline points="6 18 6 14 2 14" />
-              <polyline points="14 18 14 14 18 14" />
-            </svg>
-          ) : (
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="2 6 2 2 6 2" />
-              <polyline points="18 6 18 2 14 2" />
-              <polyline points="2 14 2 18 6 18" />
-              <polyline points="18 14 18 18 14 18" />
-            </svg>
-          )}
-        </button>
-      )}
     </div>
   );
 }
