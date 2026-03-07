@@ -3,7 +3,7 @@ import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { chapterQueryOptions, chaptersQueryOptions } from "~/hooks/useChapters";
 import { versesByChapterQueryOptions } from "~/hooks/useVerses";
-import { verseAudioQueryOptions } from "~/hooks/useAudio";
+import { chapterAudioQueryOptions } from "~/hooks/useAudio";
 import { VerseList, Pagination, ReadingToolbar } from "~/components/quran";
 import { Loading } from "~/components/ui/Loading";
 import { SegmentedControl } from "~/components/ui/SegmentedControl";
@@ -14,7 +14,7 @@ import type { ViewMode } from "~/stores/usePreferencesStore";
 import { useAudioStore } from "~/stores/useAudioStore";
 import { useAutoScrollToVerse } from "~/hooks/useAutoScrollToVerse";
 import type { Chapter } from "@mahfuz/shared/types";
-import type { VerseAudioData } from "@mahfuz/audio-engine";
+import type { ChapterAudioData } from "@mahfuz/audio-engine";
 import { useReadingHistory } from "~/stores/useReadingHistory";
 import { TOPIC_INDEX } from "~/data/topic-index";
 
@@ -165,48 +165,32 @@ function SurahView() {
     audioChapterId === chapterId &&
     (playbackState === "playing" || playbackState === "loading");
 
-  const fetchAudioData = useCallback(async (): Promise<VerseAudioData[]> => {
-    const audioFiles = await queryClient.fetchQuery(
-      verseAudioQueryOptions(reciterId, chapterId),
+  const fetchChapterAudio = useCallback(async (): Promise<ChapterAudioData> => {
+    const qdcFile = await queryClient.fetchQuery(
+      chapterAudioQueryOptions(reciterId, chapterId),
     );
-    return audioFiles.map((f) => ({
-      verseKey: f.verse_key,
-      url: f.url,
-      segments: f.segments,
-    }));
-  }, [queryClient, reciterId, chapterId]);
-
-  /** Fetch Bismillah audio (verse 1:1 from Al-Fatiha) to prepend before surahs */
-  const fetchBismillahAudio = useCallback(async (): Promise<VerseAudioData | null> => {
-    if (!chapter.bismillah_pre) return null;
-    const fatihaAudio = await queryClient.fetchQuery(
-      verseAudioQueryOptions(reciterId, 1),
-    );
-    const bismillah = fatihaAudio.find((f) => f.verse_key === "1:1");
-    if (!bismillah) return null;
     return {
-      verseKey: "bismillah",
-      url: bismillah.url,
-      segments: bismillah.segments,
+      audioUrl: qdcFile.audio_url,
+      verseTimings: qdcFile.verse_timings.map((t) => ({
+        verseKey: t.verse_key,
+        from: t.timestamp_from,
+        to: t.timestamp_to,
+        segments: t.segments,
+      })),
     };
-  }, [queryClient, reciterId, chapter.bismillah_pre]);
+  }, [queryClient, reciterId, chapterId]);
 
   const handlePlaySurah = useCallback(async () => {
     if (isPlayingThisSurah) {
       togglePlayPause();
       return;
     }
-    const [audioData, bismillah] = await Promise.all([
-      fetchAudioData(),
-      fetchBismillahAudio(),
-    ]);
-    const playlist = bismillah ? [bismillah, ...audioData] : audioData;
-    playSurah(chapterId, chapter.translated_name.name, playlist);
+    const audioData = await fetchChapterAudio();
+    playSurah(chapterId, chapter.translated_name.name, audioData);
   }, [
     isPlayingThisSurah,
     togglePlayPause,
-    fetchAudioData,
-    fetchBismillahAudio,
+    fetchChapterAudio,
     playSurah,
     chapterId,
     chapter.translated_name.name,
@@ -214,23 +198,15 @@ function SurahView() {
 
   const handlePlayFromVerse = useCallback(
     async (verseKey: string) => {
-      const [audioData, bismillah] = await Promise.all([
-        fetchAudioData(),
-        fetchBismillahAudio(),
-      ]);
-      // Prepend Bismillah when playing from the first verse
-      const isFirstVerse = verseKey === `${chapterId}:1`;
-      const playlist =
-        bismillah && isFirstVerse ? [bismillah, ...audioData] : audioData;
-      const playKey = bismillah && isFirstVerse ? "bismillah" : verseKey;
+      const audioData = await fetchChapterAudio();
       playVerse(
         chapterId,
         chapter.translated_name.name,
-        playKey,
-        playlist,
+        verseKey,
+        audioData,
       );
     },
-    [fetchAudioData, fetchBismillahAudio, playVerse, chapterId, chapter.translated_name.name],
+    [fetchChapterAudio, playVerse, chapterId, chapter.translated_name.name],
   );
 
   const hasPrev = chapterId > 1;

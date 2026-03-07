@@ -59,6 +59,13 @@ export const SM2_DEFAULTS = {
 /** Gamification XP values */
 export { XP_VALUES } from "../types/gamification";
 
+/** QDC audio API base URL */
+export const QDC_API_BASE_URL = "https://api.qurancdn.com/api/qdc";
+
+/** Curated reciters */
+export { CURATED_RECITERS, FEATURED_RECITERS } from "./reciters";
+export type { CuratedReciter, ReciterStyleTag } from "./reciters";
+
 /** Supported app languages */
 export const SUPPORTED_LANGUAGES = ["tr", "en", "ar"] as const;
 

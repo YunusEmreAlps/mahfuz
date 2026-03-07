@@ -7,11 +7,22 @@ import type {
   AudioSegment,
 } from "@mahfuz/shared/types";
 
-/** Per-verse audio data fed into the engine */
+/** Per-verse audio data fed into the engine (legacy verse mode) */
 export interface VerseAudioData {
   verseKey: string;
   url: string;
   segments: AudioSegment[]; // [wordPosition, startMs, endMs]
+}
+
+/** Chapter-level audio data from QDC API */
+export interface ChapterAudioData {
+  audioUrl: string;
+  verseTimings: {
+    verseKey: string;
+    from: number; // ms, chapter-relative
+    to: number;   // ms, chapter-relative
+    segments: AudioSegment[]; // may be empty; chapter-relative timestamps
+  }[];
 }
 
 /** Callbacks the engine fires to drive UI state */
@@ -36,7 +47,14 @@ export class AudioEngine {
   private preloadAudio: HTMLAudioElement;
   private callbacks: AudioEngineCallbacks;
 
+  // Verse mode state
   private playlist: VerseAudioData[] = [];
+
+  // Chapter mode state
+  private _chapterMode = false;
+  private _chapterTimings: ChapterAudioData["verseTimings"] = [];
+
+  // Shared state
   private currentIndex = -1;
   private rafId: number | null = null;
 
@@ -68,18 +86,91 @@ export class AudioEngine {
     });
   }
 
-  // --- Playlist ---
+  // --- Playlist (verse mode) ---
 
   loadPlaylist(verses: VerseAudioData[]): void {
     this.stop();
+    this._chapterMode = false;
+    this._chapterTimings = [];
     this.playlist = verses;
+    this.currentIndex = -1;
+    this._repeatCounter = 0;
+  }
+
+  // --- Chapter mode ---
+
+  loadChapterAudio(data: ChapterAudioData): void {
+    this.stop();
+    this._chapterMode = true;
+    this._chapterTimings = data.verseTimings;
+    this.playlist = []; // clear verse playlist
+
+    const url = normalizeUrl(data.audioUrl);
+    this.audio.src = url;
+    this.audio.playbackRate = this._speed;
+    this.audio.volume = this._volume;
+    this.audio.muted = this._muted;
+    this.audio.load();
+
     this.currentIndex = -1;
     this._repeatCounter = 0;
   }
 
   // --- Playback controls ---
 
+  get totalVerses(): number {
+    return this._chapterMode ? this._chapterTimings.length : this.playlist.length;
+  }
+
   async play(startIndex?: number): Promise<void> {
+    if (this.totalVerses === 0) return;
+
+    if (this._chapterMode) {
+      return this.playChapterMode(startIndex);
+    }
+    return this.playVerseMode(startIndex);
+  }
+
+  private async playChapterMode(startIndex?: number): Promise<void> {
+    const idx = startIndex ?? (this.currentIndex >= 0 ? this.currentIndex : 0);
+
+    // If resuming (no startIndex, same index, audio paused), just resume
+    if (startIndex === undefined && idx === this.currentIndex && this.audio.paused && this.audio.src) {
+      try {
+        await this.audio.play();
+        this.callbacks.onPlaybackStateChange("playing");
+        this.startWordSync();
+      } catch (err) {
+        this.callbacks.onError(err instanceof Error ? err : new Error(String(err)));
+      }
+      return;
+    }
+
+    // Seek to verse start
+    const timing = this._chapterTimings[idx];
+    if (!timing) return;
+
+    if (idx !== this.currentIndex) {
+      this.currentIndex = idx;
+      this.stopWordSync();
+      this.callbacks.onWordPositionChange(null);
+      this.callbacks.onVerseChange(timing.verseKey, idx);
+      this.updateMediaSessionChapter(timing.verseKey);
+    }
+
+    this.audio.currentTime = timing.from / 1000;
+
+    try {
+      this.callbacks.onPlaybackStateChange("loading");
+      await this.audio.play();
+      this.callbacks.onPlaybackStateChange("playing");
+      this.startWordSync();
+    } catch (err) {
+      this.callbacks.onError(err instanceof Error ? err : new Error(String(err)));
+    }
+  }
+
+  private async playVerseMode(startIndex?: number): Promise<void> {
     if (this.playlist.length === 0) return;
 
     const idx = startIndex ?? (this.currentIndex >= 0 ? this.currentIndex : 0);
@@ -116,9 +207,12 @@ export class AudioEngine {
 
   /** Play a specific verse by key (e.g. "101:11") */
   async playByKey(verseKey: string): Promise<void> {
-    const idx = this.playlist.findIndex((v) => v.verseKey === verseKey);
-    if (idx >= 0) {
-      await this.play(idx);
+    if (this._chapterMode) {
+      const idx = this._chapterTimings.findIndex((t) => t.verseKey === verseKey);
+      if (idx >= 0) await this.play(idx);
+    } else {
+      const idx = this.playlist.findIndex((v) => v.verseKey === verseKey);
+      if (idx >= 0) await this.play(idx);
     }
   }
 
@@ -145,23 +239,43 @@ export class AudioEngine {
   }
 
   async nextVerse(): Promise<void> {
-    if (this.currentIndex < this.playlist.length - 1) {
+    if (this.currentIndex < this.totalVerses - 1) {
       this._repeatCounter = 0;
       await this.play(this.currentIndex + 1);
     }
   }
 
   async prevVerse(): Promise<void> {
-    // If more than 2 seconds in, restart current verse
-    if (this.audio.currentTime > 2 && this.currentIndex >= 0) {
-      this.audio.currentTime = 0;
-      return;
-    }
-    if (this.currentIndex > 0) {
-      this._repeatCounter = 0;
-      await this.play(this.currentIndex - 1);
-    } else if (this.currentIndex === 0) {
-      this.audio.currentTime = 0;
+    if (this._chapterMode) {
+      // In chapter mode, check time relative to current verse start
+      const timing = this._chapterTimings[this.currentIndex];
+      const timeSinceVerseStart = timing
+        ? this.audio.currentTime - timing.from / 1000
+        : this.audio.currentTime;
+
+      if (timeSinceVerseStart > 2 && this.currentIndex >= 0) {
+        // Restart current verse
+        this.audio.currentTime = timing.from / 1000;
+        return;
+      }
+      if (this.currentIndex > 0) {
+        this._repeatCounter = 0;
+        await this.play(this.currentIndex - 1);
+      } else if (this.currentIndex === 0 && timing) {
+        this.audio.currentTime = timing.from / 1000;
+      }
+    } else {
+      // Verse mode
+      if (this.audio.currentTime > 2 && this.currentIndex >= 0) {
+        this.audio.currentTime = 0;
+        return;
+      }
+      if (this.currentIndex > 0) {
+        this._repeatCounter = 0;
+        await this.play(this.currentIndex - 1);
+      } else if (this.currentIndex === 0) {
+        this.audio.currentTime = 0;
+      }
     }
   }
 
@@ -193,6 +307,12 @@ export class AudioEngine {
   }
 
   get currentVerseKey(): string | null {
+    if (this._chapterMode) {
+      if (this.currentIndex >= 0 && this.currentIndex < this._chapterTimings.length) {
+        return this._chapterTimings[this.currentIndex].verseKey;
+      }
+      return null;
+    }
     if (this.currentIndex >= 0 && this.currentIndex < this.playlist.length) {
       return this.playlist[this.currentIndex].verseKey;
     }
@@ -203,7 +323,7 @@ export class AudioEngine {
     return this.currentIndex;
   }
 
-  // --- Internal ---
+  // --- Internal (verse mode) ---
 
   private async loadVerse(index: number): Promise<void> {
     if (index < 0 || index >= this.playlist.length) return;
@@ -238,6 +358,40 @@ export class AudioEngine {
   }
 
   private handleEnded = async (): Promise<void> => {
+    if (this._chapterMode) {
+      return this.handleChapterEnded();
+    }
+    return this.handleVerseEnded();
+  };
+
+  private async handleChapterEnded(): Promise<void> {
+    // Chapter audio file ended → entire chapter is done
+    this.stopWordSync();
+
+    // Fire verseEnd for the last verse
+    const idx = this.currentIndex;
+    if (idx >= 0 && idx < this._chapterTimings.length) {
+      this.callbacks.onVerseEnd(this._chapterTimings[idx].verseKey, idx);
+    }
+
+    if (this._repeatMode === "surah") {
+      this._repeatCounter++;
+      if (this._repeatCounter < this._repeatCount) {
+        this.audio.currentTime = 0;
+        this.currentIndex = 0;
+        const first = this._chapterTimings[0];
+        if (first) this.callbacks.onVerseChange(first.verseKey, 0);
+        await this.audio.play();
+        this.startWordSync();
+        return;
+      }
+      this._repeatCounter = 0;
+    }
+
+    this.callbacks.onPlaybackStateChange("ended");
+  }
+
+  private async handleVerseEnded(): Promise<void> {
     const idx = this.currentIndex;
     if (idx < 0 || idx >= this.playlist.length) return;
 
@@ -271,7 +425,7 @@ export class AudioEngine {
     } else {
       this.callbacks.onPlaybackStateChange("ended");
     }
-  };
+  }
 
   private handleError = (): void => {
     const error = this.audio.error;
@@ -287,7 +441,11 @@ export class AudioEngine {
     this.stopWordSync();
     const tick = () => {
       if (this._destroyed) return;
-      this.syncWord();
+      if (this._chapterMode) {
+        this.syncChapter();
+      } else {
+        this.syncWord();
+      }
       this.callbacks.onTimeUpdate(
         this.audio.currentTime * 1000,
         this.audio.duration * 1000 || 0,
@@ -304,6 +462,50 @@ export class AudioEngine {
     }
   }
 
+  /** Chapter mode sync: detect verse changes + word highlighting */
+  private syncChapter(): void {
+    if (this.currentIndex < 0 || this._chapterTimings.length === 0) return;
+
+    const timeMs = this.audio.currentTime * 1000;
+    const currentTiming = this._chapterTimings[this.currentIndex];
+
+    // Check if current time has passed the current verse's end
+    if (timeMs >= currentTiming.to) {
+      // Fire verse end
+      this.callbacks.onVerseEnd(currentTiming.verseKey, this.currentIndex);
+
+      // Handle verse repeat
+      if (this._repeatMode === "verse") {
+        this._repeatCounter++;
+        if (this._repeatCounter < this._repeatCount) {
+          this.audio.currentTime = currentTiming.from / 1000;
+          return;
+        }
+        this._repeatCounter = 0;
+      }
+
+      // Move to next verse
+      if (this.currentIndex < this._chapterTimings.length - 1) {
+        this.currentIndex++;
+        const next = this._chapterTimings[this.currentIndex];
+        this.callbacks.onWordPositionChange(null);
+        this.callbacks.onVerseChange(next.verseKey, this.currentIndex);
+        this.updateMediaSessionChapter(next.verseKey);
+      }
+      // If last verse, let handleEnded deal with it when audio file ends
+      return;
+    }
+
+    // Word-level sync within current verse
+    if (currentTiming.segments && currentTiming.segments.length > 0) {
+      const position = this.findWordPosition(currentTiming.segments, timeMs);
+      this.callbacks.onWordPositionChange(position);
+    } else {
+      this.callbacks.onWordPositionChange(null);
+    }
+  }
+
+  /** Verse mode sync */
   private syncWord(): void {
     if (this.currentIndex < 0) return;
     const verse = this.playlist[this.currentIndex];
@@ -366,6 +568,27 @@ export class AudioEngine {
     );
   }
 
+  private updateMediaSessionChapter(verseKey: string): void {
+    if (!("mediaSession" in navigator)) return;
+
+    const isBismillah = verseKey === "bismillah";
+    const [surah, ayah] = verseKey.split(":");
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: isBismillah ? "Bismillahirrahmanirrahim" : `Ayet ${ayah}`,
+      artist: "Mahfuz",
+      album: isBismillah ? "Kuran-ı Kerim" : `Sure ${surah}`,
+    });
+
+    navigator.mediaSession.setActionHandler("play", () => this.play());
+    navigator.mediaSession.setActionHandler("pause", () => this.pause());
+    navigator.mediaSession.setActionHandler("previoustrack", () =>
+      this.prevVerse(),
+    );
+    navigator.mediaSession.setActionHandler("nexttrack", () =>
+      this.nextVerse(),
+    );
+  }
+
   // --- Cleanup ---
 
   destroy(): void {
@@ -375,5 +598,6 @@ export class AudioEngine {
     this.audio.removeEventListener("error", this.handleError);
     this.preloadAudio.removeAttribute("src");
     this.playlist = [];
+    this._chapterTimings = [];
   }
 }

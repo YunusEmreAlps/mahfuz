@@ -68,6 +68,26 @@ export interface ChapterAudioResponse {
   };
 }
 
+/** QDC verse timing (chapter-relative timestamps) */
+export interface QDCVerseTiming {
+  verse_key: string;
+  timestamp_from: number; // ms, chapter-relative
+  timestamp_to: number;   // ms, chapter-relative
+  segments: import("./quran").AudioSegment[]; // may be empty
+}
+
+/** QDC audio file for a chapter */
+export interface QDCAudioFile {
+  audio_url: string;
+  duration: number;
+  verse_timings: QDCVerseTiming[];
+}
+
+/** QDC audio API response */
+export interface QDCAudioResponse {
+  audio_files: QDCAudioFile[];
+}
+
 /** API error */
 export interface ApiError {
   status: number;

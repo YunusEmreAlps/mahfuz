@@ -117,4 +117,19 @@ export class QuranApiClient {
   getLanguage(): string {
     return this.language;
   }
+
+  /** Read from cache (exposed for QDC API calls that bypass get()) */
+  async getCached<T>(key: string, ttl: number): Promise<T | null> {
+    const cache = await this.getCache();
+    if (!cache) return null;
+    return cache.get<T>(key, ttl);
+  }
+
+  /** Write to cache (exposed for QDC API calls that bypass get()) */
+  async setCached<T>(key: string, data: T): Promise<void> {
+    const cache = await this.getCache();
+    if (cache) {
+      cache.set(key, data).catch(() => {});
+    }
+  }
 }

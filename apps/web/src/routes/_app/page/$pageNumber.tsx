@@ -3,7 +3,7 @@ import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useCallback, useRef, useEffect, useMemo, type PointerEvent as ReactPointerEvent } from "react";
 import { versesByPageQueryOptions } from "~/hooks/useVerses";
 import { chaptersQueryOptions } from "~/hooks/useChapters";
-import { verseAudioQueryOptions } from "~/hooks/useAudio";
+import { chapterAudioQueryOptions } from "~/hooks/useAudio";
 import { Bismillah, VerseList, ReadingToolbar } from "~/components/quran";
 import { Loading } from "~/components/ui/Loading";
 import { SegmentedControl } from "~/components/ui/SegmentedControl";
@@ -14,7 +14,7 @@ import type { ViewMode } from "~/stores/usePreferencesStore";
 import { useAudioStore } from "~/stores/useAudioStore";
 import { useAutoScrollToVerse } from "~/hooks/useAutoScrollToVerse";
 import type { Chapter, Verse } from "@mahfuz/shared/types";
-import type { VerseAudioData } from "@mahfuz/audio-engine";
+import type { ChapterAudioData } from "@mahfuz/audio-engine";
 import { useReadingHistory } from "~/stores/useReadingHistory";
 
 export const Route = createFileRoute("/_app/page/$pageNumber")({
@@ -137,7 +137,6 @@ function MushafPageView() {
 
   const reciterId = useAudioStore((s) => s.reciterId);
   const playVerse = useAudioStore((s) => s.playVerse);
-  const playSurah = useAudioStore((s) => s.playSurah);
   const playbackState = useAudioStore((s) => s.playbackState);
   const audioChapterId = useAudioStore((s) => s.chapterId);
   const togglePlayPause = useAudioStore((s) => s.togglePlayPause);
@@ -197,19 +196,25 @@ function MushafPageView() {
     }
   }, []);
 
+  const buildChapterAudio = useCallback(async (chId: number): Promise<ChapterAudioData> => {
+    const qdcFile = await queryClient.fetchQuery(chapterAudioQueryOptions(reciterId, chId));
+    return {
+      audioUrl: qdcFile.audio_url,
+      verseTimings: qdcFile.verse_timings.map((t) => ({
+        verseKey: t.verse_key,
+        from: t.timestamp_from,
+        to: t.timestamp_to,
+        segments: t.segments,
+      })),
+    };
+  }, [queryClient, reciterId]);
+
   // Audio: play from a specific verse
   const handlePlayFromVerse = useCallback(
     async (verseKey: string) => {
       const chapterId = Number(verseKey.split(":")[0]);
       const ch = chapters.find((c) => c.id === chapterId);
-      const audioFiles = await queryClient.fetchQuery(
-        verseAudioQueryOptions(reciterId, chapterId),
-      );
-      const audioData: VerseAudioData[] = audioFiles.map((f) => ({
-        verseKey: f.verse_key,
-        url: f.url,
-        segments: f.segments,
-      }));
+      const audioData = await buildChapterAudio(chapterId);
       playVerse(
         chapterId,
         ch?.translated_name.name || `Sure ${chapterId}`,
@@ -217,7 +222,7 @@ function MushafPageView() {
         audioData,
       );
     },
-    [chapters, queryClient, reciterId, playVerse],
+    [chapters, buildChapterAudio, playVerse],
   );
 
   // Play page audio — starts from first verse on this page
@@ -232,14 +237,9 @@ function MushafPageView() {
     const ch = firstGroup.chapter;
     const firstVerseKey = firstGroup.verses[0]?.verse_key;
     if (!firstVerseKey) return;
-    const audioFiles = await queryClient.fetchQuery(
-      verseAudioQueryOptions(reciterId, firstGroup.chapterId),
-    );
-    const audioData: VerseAudioData[] = audioFiles.map((f) => ({
-      verseKey: f.verse_key, url: f.url, segments: f.segments,
-    }));
+    const audioData = await buildChapterAudio(firstGroup.chapterId);
     playVerse(firstGroup.chapterId, ch?.translated_name.name || `Sure ${firstGroup.chapterId}`, firstVerseKey, audioData);
-  }, [isPlayingThisPage, togglePlayPause, firstGroup, queryClient, reciterId, playVerse]);
+  }, [isPlayingThisPage, togglePlayPause, firstGroup, buildChapterAudio, playVerse]);
 
   // Keyboard navigation (ArrowLeft/Right)
   useEffect(() => {

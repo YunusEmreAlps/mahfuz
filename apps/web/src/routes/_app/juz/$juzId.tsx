@@ -3,10 +3,10 @@ import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { versesByJuzQueryOptions } from "~/hooks/useVerses";
 import { chaptersQueryOptions } from "~/hooks/useChapters";
-import { verseAudioQueryOptions } from "~/hooks/useAudio";
+import { chapterAudioQueryOptions } from "~/hooks/useAudio";
 import { VerseList, Pagination, ReadingToolbar } from "~/components/quran";
 import { useAudioStore } from "~/stores/useAudioStore";
-import type { VerseAudioData } from "@mahfuz/audio-engine";
+import type { ChapterAudioData } from "@mahfuz/audio-engine";
 import { SegmentedControl } from "~/components/ui/SegmentedControl";
 import { Loading } from "~/components/ui/Loading";
 import { TOTAL_JUZ, TOTAL_PAGES } from "@mahfuz/shared/constants";
@@ -100,20 +100,31 @@ function JuzView() {
   const firstChapterId = firstVerse ? Number(firstVerse.verse_key.split(":")[0]) : null;
   const isPlayingThisJuz = firstChapterId !== null && audioChapterId === firstChapterId && (playbackState === "playing" || playbackState === "loading");
 
+  const buildChapterAudio = useCallback(async (chId: number): Promise<ChapterAudioData> => {
+    const qdcFile = await queryClient.fetchQuery(chapterAudioQueryOptions(reciterId, chId));
+    return {
+      audioUrl: qdcFile.audio_url,
+      verseTimings: qdcFile.verse_timings.map((t) => ({
+        verseKey: t.verse_key,
+        from: t.timestamp_from,
+        to: t.timestamp_to,
+        segments: t.segments,
+      })),
+    };
+  }, [queryClient, reciterId]);
+
   const handlePlayJuz = useCallback(async () => {
     if (isPlayingThisJuz) { togglePlayPause(); return; }
     if (!firstVerse || !firstChapterId) return;
-    const audioFiles = await queryClient.fetchQuery(verseAudioQueryOptions(reciterId, firstChapterId));
-    const audioData: VerseAudioData[] = audioFiles.map((f) => ({ verseKey: f.verse_key, url: f.url, segments: f.segments }));
+    const audioData = await buildChapterAudio(firstChapterId);
     playVerse(firstChapterId, `Cüz ${juzNumber}`, firstVerse.verse_key, audioData);
-  }, [isPlayingThisJuz, togglePlayPause, firstVerse, firstChapterId, queryClient, reciterId, playVerse, juzNumber]);
+  }, [isPlayingThisJuz, togglePlayPause, firstVerse, firstChapterId, buildChapterAudio, playVerse, juzNumber]);
 
   const handlePlayFromVerse = useCallback(async (verseKey: string) => {
     const chId = Number(verseKey.split(":")[0]);
-    const audioFiles = await queryClient.fetchQuery(verseAudioQueryOptions(reciterId, chId));
-    const audioData: VerseAudioData[] = audioFiles.map((f) => ({ verseKey: f.verse_key, url: f.url, segments: f.segments }));
+    const audioData = await buildChapterAudio(chId);
     playVerse(chId, `Cüz ${juzNumber}`, verseKey, audioData);
-  }, [queryClient, reciterId, playVerse, juzNumber]);
+  }, [buildChapterAudio, playVerse, juzNumber]);
 
   const hasPrev = juzNumber > 1;
   const hasNext = juzNumber < TOTAL_JUZ;

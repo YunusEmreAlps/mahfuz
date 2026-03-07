@@ -6,7 +6,7 @@ import type {
   RepeatMode,
 } from "@mahfuz/shared/types";
 import { DEFAULT_RECITER_ID } from "@mahfuz/shared/constants";
-import type { AudioEngine, VerseAudioData } from "@mahfuz/audio-engine";
+import type { AudioEngine, ChapterAudioData } from "@mahfuz/audio-engine";
 
 interface AudioStoreState {
   // Playback state
@@ -40,13 +40,13 @@ interface AudioStoreState {
   playSurah: (
     chapterId: number,
     chapterName: string,
-    audioData: VerseAudioData[],
+    audioData: ChapterAudioData,
   ) => void;
   playVerse: (
     chapterId: number,
     chapterName: string,
     verseKey: string,
-    audioData: VerseAudioData[],
+    audioData: ChapterAudioData,
   ) => void;
   play: () => void;
   pause: () => void;
@@ -95,8 +95,8 @@ export const useAudioStore = create<AudioStoreState>()(
 
       playSurah: (chapterId, chapterName, audioData) => {
         const { engine, speed, volume, isMuted, repeatMode } = get();
-        if (!engine || audioData.length === 0) return;
-        engine.loadPlaylist(audioData);
+        if (!engine || audioData.verseTimings.length === 0) return;
+        engine.loadChapterAudio(audioData);
         engine.setSpeed(speed);
         engine.setVolume(volume);
         engine.setMuted(isMuted);
@@ -104,7 +104,7 @@ export const useAudioStore = create<AudioStoreState>()(
         set({
           chapterId,
           chapterName,
-          verseKeys: audioData.map((d) => d.verseKey),
+          verseKeys: audioData.verseTimings.map((t) => t.verseKey),
           isVisible: true,
           isExpanded: false,
         });
@@ -113,13 +113,11 @@ export const useAudioStore = create<AudioStoreState>()(
 
       playVerse: (chapterId, chapterName, verseKey, audioData) => {
         const { engine, speed, volume, isMuted, repeatMode } = get();
-        if (!engine || audioData.length === 0) return;
-        // Find index before loadPlaylist (which calls stop and resets state)
-        // Normalize: trim whitespace, compare loosely
-        const startIndex = audioData.findIndex(
-          (d) => d.verseKey.trim() === verseKey.trim(),
+        if (!engine || audioData.verseTimings.length === 0) return;
+        const startIndex = audioData.verseTimings.findIndex(
+          (t) => t.verseKey.trim() === verseKey.trim(),
         );
-        engine.loadPlaylist(audioData);
+        engine.loadChapterAudio(audioData);
         engine.setSpeed(speed);
         engine.setVolume(volume);
         engine.setMuted(isMuted);
@@ -127,7 +125,7 @@ export const useAudioStore = create<AudioStoreState>()(
         set({
           chapterId,
           chapterName,
-          verseKeys: audioData.map((d) => d.verseKey),
+          verseKeys: audioData.verseTimings.map((t) => t.verseKey),
           isVisible: true,
           isExpanded: false,
         });

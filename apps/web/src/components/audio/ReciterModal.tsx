@@ -1,7 +1,10 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { recitersQueryOptions } from "~/hooks/useAudio";
+import { useState, useMemo } from "react";
 import { useAudioStore } from "~/stores/useAudioStore";
+import {
+  CURATED_RECITERS,
+  FEATURED_RECITERS,
+} from "@mahfuz/shared/constants";
+import type { CuratedReciter } from "@mahfuz/shared/constants";
 
 interface ReciterModalProps {
   open: boolean;
@@ -9,19 +12,27 @@ interface ReciterModalProps {
   onSelect?: (reciterId: number) => void;
 }
 
+const STYLE_LABELS: Record<string, string> = {
+  Murattal: "Murattal",
+  Mujawwad: "Mujawwad",
+  Muallim: "Muallim",
+};
+
 export function ReciterModal({ open, onClose, onSelect }: ReciterModalProps) {
   const [search, setSearch] = useState("");
   const reciterId = useAudioStore((s) => s.reciterId);
   const setReciter = useAudioStore((s) => s.setReciter);
-  const { data: reciters, isLoading } = useQuery(recitersQueryOptions());
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return null; // null = show featured + all sections
+    const q = search.toLowerCase();
+    return CURATED_RECITERS.filter((r) =>
+      r.name.toLowerCase().includes(q) ||
+      r.style.toLowerCase().includes(q),
+    );
+  }, [search]);
 
   if (!open) return null;
-
-  const filtered = reciters?.filter(
-    (r) =>
-      r.reciter_name.toLowerCase().includes(search.toLowerCase()) ||
-      r.translated_name.name.toLowerCase().includes(search.toLowerCase()),
-  );
 
   const handleSelect = (id: number) => {
     if (onSelect) {
@@ -32,6 +43,8 @@ export function ReciterModal({ open, onClose, onSelect }: ReciterModalProps) {
     onClose();
   };
 
+  const nonFeatured = CURATED_RECITERS.filter((r) => !r.featured);
+
   return (
     <div className="fixed inset-0 z-[70] flex items-end justify-center sm:items-center">
       <div
@@ -41,7 +54,7 @@ export function ReciterModal({ open, onClose, onSelect }: ReciterModalProps) {
       <div className="relative z-10 w-full max-w-lg animate-slide-up rounded-t-2xl bg-[var(--theme-bg-primary)] p-5 shadow-modal sm:rounded-2xl">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-[17px] font-semibold text-[var(--theme-text)]">
-            Kari Secimi
+            Kârî Seçimi
           </h2>
           <button
             onClick={onClose}
@@ -66,67 +79,126 @@ export function ReciterModal({ open, onClose, onSelect }: ReciterModalProps) {
 
         <input
           type="text"
-          placeholder="Kari ara..."
+          placeholder="Kârî ara..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="mb-3 w-full rounded-xl border border-[var(--theme-border)] bg-[var(--theme-input-bg)] px-4 py-2.5 text-[14px] text-[var(--theme-text)] outline-none placeholder:text-[var(--theme-text-quaternary)] focus:border-primary-500/40 focus:ring-2 focus:ring-primary-500/20"
         />
 
         <div className="max-h-[50vh] overflow-y-auto">
-          {isLoading ? (
-            <p className="py-8 text-center text-[13px] text-[var(--theme-text-tertiary)]">
-              Yükleniyor...
-            </p>
-          ) : filtered && filtered.length > 0 ? (
-            <div className="space-y-0.5">
-              {filtered.map((r) => {
-                const isActive = r.id === reciterId;
-                return (
-                  <button
-                    key={r.id}
-                    onClick={() => handleSelect(r.id)}
-                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors ${
-                      isActive
-                        ? "bg-primary-600/10 text-primary-700"
-                        : "text-[var(--theme-text)] hover:bg-[var(--theme-hover-bg)]"
-                    }`}
-                  >
-                    <span className="flex-1">
-                      <span className="block text-[14px] font-medium">
-                        {r.reciter_name}
-                      </span>
-                      {r.style && (
-                        <span className="block text-[12px] text-[var(--theme-text-tertiary)]">
-                          {r.style.name}
-                        </span>
-                      )}
-                    </span>
-                    {isActive && (
-                      <svg
-                        className="h-4 w-4 flex-shrink-0 text-primary-600"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2.5}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+          {filtered ? (
+            // Search results
+            filtered.length > 0 ? (
+              <div className="space-y-0.5">
+                {filtered.map((r) => (
+                  <ReciterRow
+                    key={`${r.id}-${r.style}`}
+                    reciter={r}
+                    isActive={r.id === reciterId}
+                    onSelect={handleSelect}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="py-8 text-center text-[13px] text-[var(--theme-text-tertiary)]">
+                Sonuç bulunamadı.
+              </p>
+            )
           ) : (
-            <p className="py-8 text-center text-[13px] text-[var(--theme-text-tertiary)]">
-              Sonuc bulunamadi.
-            </p>
+            // Default view: Featured + All
+            <>
+              <div className="mb-3">
+                <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--theme-text-tertiary)]">
+                  Öne Çıkanlar
+                </p>
+                <div className="space-y-0.5">
+                  {FEATURED_RECITERS.map((r) => (
+                    <ReciterRow
+                      key={`${r.id}-${r.style}`}
+                      reciter={r}
+                      isActive={r.id === reciterId}
+                      isFeatured
+                      onSelect={handleSelect}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--theme-text-tertiary)]">
+                  Tüm Kârîler
+                </p>
+                <div className="space-y-0.5">
+                  {nonFeatured.map((r) => (
+                    <ReciterRow
+                      key={`${r.id}-${r.style}`}
+                      reciter={r}
+                      isActive={r.id === reciterId}
+                      onSelect={handleSelect}
+                    />
+                  ))}
+                </div>
+              </div>
+            </>
           )}
         </div>
       </div>
     </div>
+  );
+}
+
+function ReciterRow({
+  reciter,
+  isActive,
+  isFeatured,
+  onSelect,
+}: {
+  reciter: CuratedReciter;
+  isActive: boolean;
+  isFeatured?: boolean;
+  onSelect: (id: number) => void;
+}) {
+  return (
+    <button
+      onClick={() => onSelect(reciter.id)}
+      className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors ${
+        isActive
+          ? "bg-primary-600/10 text-primary-700"
+          : isFeatured
+            ? "border border-primary-500/20 bg-primary-50/30 text-[var(--theme-text)] hover:bg-primary-50/60"
+            : "text-[var(--theme-text)] hover:bg-[var(--theme-hover-bg)]"
+      }`}
+    >
+      <span className="flex-1">
+        <span className="block text-[14px] font-medium">
+          {reciter.name}
+        </span>
+        <span className="block text-[12px] text-[var(--theme-text-tertiary)]">
+          {reciter.country} · {STYLE_LABELS[reciter.style] ?? reciter.style}
+        </span>
+      </span>
+      {isActive ? (
+        <svg
+          className="h-4 w-4 flex-shrink-0 text-primary-600"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2.5}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M5 13l4 4L19 7"
+          />
+        </svg>
+      ) : isFeatured ? (
+        <svg
+          className="h-4 w-4 flex-shrink-0 text-amber-400"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+        >
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+        </svg>
+      ) : null}
+    </button>
   );
 }
