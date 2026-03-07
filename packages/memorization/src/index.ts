@@ -1,3 +1,4 @@
-// @mahfuz/memorization — SM-2 spaced repetition
-// Implementation in Phase 5
-export {};
+export { calculateSM2, type SM2Result } from "./sm2";
+export { deriveConfidence } from "./confidence";
+export { computeStats, computeStreak } from "./stats";
+export { getCardsForReview, getNewVerseKeys } from "./scheduling";

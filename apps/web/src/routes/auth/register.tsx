@@ -38,17 +38,33 @@ function RegisterPage() {
   };
 
   const handleGoogleSignIn = async () => {
-    await signIn.social({
-      provider: "google",
-      callbackURL: redirect || "/surah",
-    });
+    setError("");
+    try {
+      const result = await signIn.social({
+        provider: "google",
+        callbackURL: redirect || "/surah",
+      });
+      if (result?.error) {
+        setError(result.error.message || "Google ile kayıt olunamadı.");
+      }
+    } catch {
+      setError("Google ile kayıt olunamadı. Lütfen tekrar deneyin.");
+    }
   };
 
   const handleAppleSignIn = async () => {
-    await signIn.social({
-      provider: "apple",
-      callbackURL: redirect || "/surah",
-    });
+    setError("");
+    try {
+      const result = await signIn.social({
+        provider: "apple",
+        callbackURL: redirect || "/surah",
+      });
+      if (result?.error) {
+        setError(result.error.message || "Apple ile kayıt olunamadı.");
+      }
+    } catch {
+      setError("Apple ile kayıt olunamadı. Lütfen tekrar deneyin.");
+    }
   };
 
   return (
@@ -89,11 +105,11 @@ function RegisterPage() {
             </button>
             <button
               type="button"
-              onClick={handleAppleSignIn}
-              className="flex w-full items-center justify-center gap-3 rounded-xl bg-[#1d1d1f] px-4 py-3 text-[15px] font-medium text-white transition-all hover:bg-[#333] active:scale-[0.98]"
+              disabled
+              className="flex w-full cursor-not-allowed items-center justify-center gap-3 rounded-xl bg-[#1d1d1f]/40 px-4 py-3 text-[15px] font-medium text-white/50"
             >
               <AppleIcon />
-              Apple ile devam et
+              Apple ile devam et (yakında)
             </button>
           </div>
 
