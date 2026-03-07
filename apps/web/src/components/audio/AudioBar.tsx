@@ -8,6 +8,7 @@ import { verseAudioQueryOptions } from "~/hooks/useAudio";
 import { versesByChapterQueryOptions } from "~/hooks/useVerses";
 import type { PlaybackSpeed, RepeatMode } from "@mahfuz/shared/types";
 import type { VerseAudioData } from "@mahfuz/audio-engine";
+import { buildVersePageMap } from "~/lib/utils";
 
 const SPEEDS: PlaybackSpeed[] = [0.5, 0.75, 1, 1.25, 1.5, 2];
 const REPEAT_OPTIONS: { value: RepeatMode; label: string }[] = [
@@ -75,11 +76,7 @@ export function AudioBar() {
           segments: f.segments,
         }));
         
-        // Build verse page map
-        const versePageMap: Record<string, number> = {};
-        for (const verse of chapterVerses.verses) {
-          versePageMap[verse.verse_key] = verse.page_number;
-        }
+        const versePageMap = buildVersePageMap(chapterVerses.verses);
         
         if (vk) {
           playVerse(chapterId, cn, vk, audioData, versePageMap);

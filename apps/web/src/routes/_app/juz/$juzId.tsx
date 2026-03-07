@@ -14,6 +14,7 @@ import { getPagesForJuz } from "@mahfuz/shared";
 import { usePreferencesStore } from "~/stores/usePreferencesStore";
 import type { ViewMode } from "~/stores/usePreferencesStore";
 import { useReadingHistory } from "~/stores/useReadingHistory";
+import { buildVersePageMap } from "~/lib/utils";
 
 export const Route = createFileRoute("/_app/juz/$juzId")({
   loader: ({ context, params }) => {
@@ -104,7 +105,8 @@ function JuzView() {
     if (isPlayingThisJuz) { togglePlayPause(); return; }
     if (!firstVerse || !firstChapterId) return;
     
-    // Fetch both audio and full chapter verses for page mapping
+    // Fetch both audio and verses for page mapping
+    // Note: fetches page 1 only (~50 verses) for the first chapter in juz
     const [audioFiles, chapterVerses] = await Promise.all([
       queryClient.fetchQuery(verseAudioQueryOptions(reciterId, firstChapterId)),
       queryClient.fetchQuery(versesByChapterQueryOptions(firstChapterId, 1)),
@@ -114,11 +116,7 @@ function JuzView() {
       verseKey: f.verse_key, url: f.url, segments: f.segments 
     }));
     
-    // Build verse page map
-    const versePageMap: Record<string, number> = {};
-    for (const verse of chapterVerses.verses) {
-      versePageMap[verse.verse_key] = verse.page_number;
-    }
+    const versePageMap = buildVersePageMap(chapterVerses.verses);
     
     playVerse(firstChapterId, `Cüz ${juzNumber}`, firstVerse.verse_key, audioData, versePageMap);
   }, [isPlayingThisJuz, togglePlayPause, firstVerse, firstChapterId, queryClient, reciterId, playVerse, juzNumber]);
@@ -126,7 +124,8 @@ function JuzView() {
   const handlePlayFromVerse = useCallback(async (verseKey: string) => {
     const chId = Number(verseKey.split(":")[0]);
     
-    // Fetch both audio and full chapter verses for page mapping
+    // Fetch both audio and verses for page mapping
+    // Note: fetches page 1 only (~50 verses) for the chapter
     const [audioFiles, chapterVerses] = await Promise.all([
       queryClient.fetchQuery(verseAudioQueryOptions(reciterId, chId)),
       queryClient.fetchQuery(versesByChapterQueryOptions(chId, 1)),
@@ -136,11 +135,7 @@ function JuzView() {
       verseKey: f.verse_key, url: f.url, segments: f.segments 
     }));
     
-    // Build verse page map
-    const versePageMap: Record<string, number> = {};
-    for (const verse of chapterVerses.verses) {
-      versePageMap[verse.verse_key] = verse.page_number;
-    }
+    const versePageMap = buildVersePageMap(chapterVerses.verses);
     
     playVerse(chId, `Cüz ${juzNumber}`, verseKey, audioData, versePageMap);
   }, [queryClient, reciterId, playVerse, juzNumber]);
@@ -231,34 +226,28 @@ function JuzView() {
             <span className="w-8 shrink-0" />
           )}
 
-          {/* Center content */}
+          {/* Center: unified toolbar (icon-only tabs + A ⚙) */}
           <div className="flex min-w-0 flex-1 items-center justify-center">
-            <SegmentedControl options={VIEW_MODE_OPTIONS} value={viewMode} onChange={setViewMode} />
+            <div className="flex items-center rounded-xl bg-[var(--theme-pill-bg)] p-1">
+              <SegmentedControl options={VIEW_MODE_OPTIONS} value={viewMode} onChange={setViewMode} iconOnlyMobile transparent />
+              <div className="mx-0.5 h-4 w-px bg-[var(--theme-border)]" />
+              <ReadingToolbar segmentStyle />
+            </div>
           </div>
 
-          {/* Right group: page info + reading toolbar + arrow */}
-          <div className="flex shrink-0 items-center gap-0.5">
+          {/* Right arrow — next juz */}
+          {hasNext ? (
             <Link
-              to="/page/$pageNumber"
-              params={{ pageNumber: String(pageStart) }}
-              className="hidden text-[12px] tabular-nums text-[var(--theme-text-tertiary)] transition-colors hover:text-primary-600 sm:inline"
+              to="/juz/$juzId"
+              params={{ juzId: String(juzNumber + 1) }}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[var(--theme-text-tertiary)] transition-colors hover:bg-[var(--theme-hover-bg)] hover:text-[var(--theme-text)]"
+              aria-label="Sonraki cüz"
             >
-              Sayfa {pageStart}–{pageEnd}
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
             </Link>
-            <ReadingToolbar />
-            {hasNext ? (
-              <Link
-                to="/juz/$juzId"
-                params={{ juzId: String(juzNumber + 1) }}
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[var(--theme-text-tertiary)] transition-colors hover:bg-[var(--theme-hover-bg)] hover:text-[var(--theme-text)]"
-                aria-label="Sonraki cüz"
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-              </Link>
-            ) : (
-              <span className="w-8 shrink-0" />
-            )}
-          </div>
+          ) : (
+            <span className="w-8 shrink-0" />
+          )}
         </div>
       </div>
 

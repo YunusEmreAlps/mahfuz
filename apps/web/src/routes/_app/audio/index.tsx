@@ -6,6 +6,7 @@ import { chaptersQueryOptions } from "~/hooks/useChapters";
 import { versesByChapterQueryOptions } from "~/hooks/useVerses";
 import { useAudioStore } from "~/stores/useAudioStore";
 import type { VerseAudioData } from "@mahfuz/audio-engine";
+import { buildVersePageMap } from "~/lib/utils";
 
 export const Route = createFileRoute("/_app/audio/")({
   loader: ({ context }) =>
@@ -43,6 +44,8 @@ function AudioPage() {
 
   const handleQuickPlay = useCallback(
     async (chapterId: number, chapterName: string) => {
+      // Fetch both audio and verses for page mapping
+      // Note: fetches page 1 only (~50 verses), sufficient for most surahs
       const [audioFiles, chapterVerses] = await Promise.all([
         queryClient.fetchQuery(verseAudioQueryOptions(reciterId, chapterId)),
         queryClient.fetchQuery(versesByChapterQueryOptions(chapterId, 1)),
@@ -54,11 +57,7 @@ function AudioPage() {
         segments: f.segments,
       }));
       
-      // Build verse page map
-      const versePageMap: Record<string, number> = {};
-      for (const verse of chapterVerses.verses) {
-        versePageMap[verse.verse_key] = verse.page_number;
-      }
+      const versePageMap = buildVersePageMap(chapterVerses.verses);
       
       playSurah(chapterId, chapterName, audioData, versePageMap);
     },

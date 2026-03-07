@@ -9,7 +9,7 @@ import { useAudioStore } from "~/stores/useAudioStore";
  */
 export function AudioProvider() {
   const navigate = useNavigate();
-  const routerState = useRouterState();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   
   const setEngine = useAudioStore((s) => s.setEngine);
   const onPlaybackStateChange = useAudioStore(
@@ -83,8 +83,7 @@ export function AudioProvider() {
     const versePage = versePageMap[currentVerseKey];
     if (!versePage) return;
     
-    const currentPath = routerState.location.pathname;
-    const pageMatch = currentPath.match(/\/page\/(\d+)/);
+    const pageMatch = pathname.match(/\/page\/(\d+)/);
     
     // If we're on a page route, check if we need to navigate to a different page
     if (pageMatch) {
@@ -98,7 +97,7 @@ export function AudioProvider() {
       }
     } 
     // If we're on any other route (juz, surah, etc.), navigate to the verse's page
-    else if (!currentPath.includes('/audio')) {
+    else if (!pathname.includes('/audio')) {
       // Small delay to allow verse to be read before scrolling
       const timer = setTimeout(() => {
         const verseElement = document.getElementById(`verse-${currentVerseKey}`);
@@ -113,7 +112,7 @@ export function AudioProvider() {
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [currentVerseKey, versePageMap, routerState.location.pathname, navigate]);
+  }, [currentVerseKey, versePageMap, pathname, navigate]);
 
   return null;
 }
