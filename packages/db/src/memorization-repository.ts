@@ -77,6 +77,33 @@ export class MemorizationRepository {
     });
   }
 
+  /** Remove duplicate cards — keep the one with most reviews per verseKey */
+  async deduplicateCards(userId: string): Promise<number> {
+    const all = await this.getAllCards(userId);
+    const byKey = new Map<string, MemorizationCardEntry[]>();
+    for (const card of all) {
+      const group = byKey.get(card.verseKey) || [];
+      group.push(card);
+      byKey.set(card.verseKey, group);
+    }
+    const toDelete: string[] = [];
+    for (const group of byKey.values()) {
+      if (group.length <= 1) continue;
+      // Keep the card with most reviews (or latest updatedAt as tiebreaker)
+      group.sort(
+        (a, b) =>
+          b.totalReviews - a.totalReviews || b.updatedAt - a.updatedAt,
+      );
+      for (let i = 1; i < group.length; i++) {
+        toDelete.push(group[i].id);
+      }
+    }
+    if (toDelete.length > 0) {
+      await db.memorization_cards.bulkDelete(toDelete);
+    }
+    return toDelete.length;
+  }
+
   /** Add a review entry */
   async addReview(entry: ReviewEntryRecord): Promise<void> {
     await db.transaction("rw", db.review_entries, db.sync_queue, async () => {

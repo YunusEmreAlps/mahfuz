@@ -330,6 +330,8 @@ export const en = {
       streakSuffix: "days",
       accuracy: "Accuracy",
       confidenceDist: "Confidence Distribution",
+      ofQuran: "of Quran",
+      memorized: "Memorized",
     },
 
     // Goals
@@ -384,7 +386,10 @@ export const en = {
       noResults: "No surah found",
       noResultsHint: "Try a different search term",
       addedSurahs: "Added Surahs",
+      completedSurahs: "Completed Surahs",
+      inProgressSurahs: "In Progress",
       allSurahs: "All Surahs",
+      markMastered: "Mastered ✓",
     },
 
     // Practice mode
@@ -410,6 +415,10 @@ export const en = {
       failTitle: "More Practice Needed",
       failDesc: "Some verses need more review.",
       needsWork: "Verses that need work:",
+      fillBlank: "Fill the Blank",
+      correct: "Correct!",
+      wrong: "Wrong",
+      selectWord: "Select the missing word",
     },
 
     // Badges

@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { chapterQueryOptions } from "~/hooks/useChapters";
 import { useReviewSession, useMemorizationDashboard } from "~/hooks/useMemorization";
-import { ReviewCard } from "~/components/memorization";
+import { FillBlankCard } from "~/components/memorization";
 import { VerificationResults } from "~/components/memorization/VerificationResults";
 import { memorizationRepository } from "@mahfuz/db";
 import type { MemorizationCard, ConfidenceLevel, VerseKey } from "@mahfuz/shared/types";
@@ -32,13 +32,6 @@ function VerifyPage() {
     sessionCards,
     currentCardIndex,
     sessionResults,
-    revealedWords,
-    totalWords,
-    gradeCurrentCard,
-    nextCard,
-    revealNextWord,
-    revealAll,
-    setRevealState,
     resetSession,
   } = useReviewSession(userId);
 
@@ -84,7 +77,12 @@ function VerifyPage() {
     useMemorizationStore.getState().startSession(cards, "verification");
   }, [userId, chapter, surahId]);
 
-  // Auto-start on mount
+  // Reset any leftover session and start fresh on mount / surahId change
+  useEffect(() => {
+    resetSession();
+  }, [surahId, resetSession]);
+
+  // Start verification once session is idle
   useEffect(() => {
     if (phase === "idle") {
       startVerification();
@@ -184,14 +182,9 @@ function VerifyPage() {
       </div>
 
       <div key={currentCard.id} className="animate-fade-in">
-        <ReviewCard
+        <FillBlankCard
           card={currentCard}
-          revealedWords={revealedWords}
-          totalWords={totalWords}
-          onRevealNext={revealNextWord}
-          onRevealAll={revealAll}
           onGrade={handleGrade}
-          onSetRevealState={setRevealState}
         />
       </div>
     </div>

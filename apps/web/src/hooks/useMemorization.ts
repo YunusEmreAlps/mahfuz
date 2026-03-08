@@ -53,6 +53,8 @@ export function useMemorizationDashboard(userId: string | undefined) {
     if (!userId) return;
     setIsLoading(true);
     try {
+      // Clean up any duplicate cards (same verseKey)
+      await memorizationRepository.deduplicateCards(userId);
       const allCards = await memorizationRepository.getAllCards(userId);
       const cards = allCards.map(entryToCard);
       const todayStart = getTodayStart();
@@ -203,8 +205,16 @@ export function useAddVerses(userId: string | undefined) {
       if (!userId) return;
       setIsAdding(true);
       try {
+        // Filter out verses that already have a card (prevent duplicates)
+        const existing = await memorizationRepository.getCardsBySurah(userId, surahId);
+        const existingKeys = new Set(existing.map((c) => c.verseKey));
+        const newVerses = verseNumbers.filter(
+          (num) => !existingKeys.has(`${surahId}:${num}` as VerseKey),
+        );
+        if (newVerses.length === 0) return;
+
         const now = Date.now();
-        const cards: MemorizationCardEntry[] = verseNumbers.map((num) => ({
+        const cards: MemorizationCardEntry[] = newVerses.map((num) => ({
           id: crypto.randomUUID(),
           userId,
           verseKey: `${surahId}:${num}` as VerseKey,

@@ -6,6 +6,7 @@ export { GoalsSettings } from "./GoalsSettings";
 export { SessionResults } from "./SessionResults";
 export { GoalCelebration } from "./GoalCelebration";
 export { VerificationResults } from "./VerificationResults";
+export { FillBlankCard } from "./FillBlankCard";
 export { BadgeGrid } from "./BadgeGrid";
 export { BadgeUnlockToast } from "./BadgeUnlockToast";
 export { QuranProgress } from "./QuranProgress";

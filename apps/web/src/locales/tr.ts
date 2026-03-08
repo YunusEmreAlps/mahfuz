@@ -328,6 +328,8 @@ export const tr = {
       streakSuffix: "gün",
       accuracy: "Doğruluk",
       confidenceDist: "Güven Dağılımı",
+      ofQuran: "Kuran'ın",
+      memorized: "Ezberlendi",
     },
 
     // Goals
@@ -382,7 +384,10 @@ export const tr = {
       noResults: "Sûre bulunamadı",
       noResultsHint: "Farklı bir arama terimi deneyin",
       addedSurahs: "Eklenen Sureler",
+      completedSurahs: "Tamamlanan Sureler",
+      inProgressSurahs: "Ezberlenmekte Olan",
       allSurahs: "Tüm Sureler",
+      markMastered: "Ezberledim ✓",
     },
 
     // Practice mode
@@ -408,6 +413,10 @@ export const tr = {
       failTitle: "Biraz Daha Çalışma Gerekiyor",
       failDesc: "Bazı ayetlerde tekrar yapman gerekiyor.",
       needsWork: "Çalışılması gereken ayetler:",
+      fillBlank: "Boşluğu Doldur",
+      correct: "Doğru!",
+      wrong: "Yanlış",
+      selectWord: "Eksik kelimeyi seçin",
     },
 
     // Badges

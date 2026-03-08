@@ -40,7 +40,13 @@ function PracticePage() {
   const { refreshStats } = useMemorizationDashboard(userId);
   const { t } = useTranslation();
 
-  // Auto-start practice session on mount
+  // Reset stale session on mount or surahId change
+  useEffect(() => {
+    resetSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [surahId]);
+
+  // Auto-start practice session after reset
   useEffect(() => {
     if (phase === "idle" && surahId) {
       startReview(surahId, "practice");
