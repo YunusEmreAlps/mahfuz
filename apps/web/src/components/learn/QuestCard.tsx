@@ -15,17 +15,18 @@ export function QuestCard({ quest, progress }: QuestCardProps) {
   const progressPct = totalWords > 0 ? Math.round((learnedWords / totalWords) * 100) : 0;
 
   const letterChars: Record<number, string> = { 2: "ب", 3: "ت", 4: "ث" };
-  const familyDisplay = quest.letterIds.map((id) => letterChars[id] || "").join(" ");
+  const familyDisplay = quest.letterIds.map((id) => letterChars[id] || "").join("");
 
   return (
     <Link to="/learn/quest/$questId" params={{ questId: quest.id }}>
       <div className="rounded-2xl border-2 border-[var(--theme-border)] bg-[var(--theme-bg-primary)] p-4 shadow-[var(--shadow-card)] transition-all hover:shadow-[var(--shadow-elevated)] sm:p-5">
         <div className="flex items-start gap-3">
           {/* Letter family badge */}
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-amber-100 dark:bg-amber-900/40">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-amber-500/20">
             <span
-              className="text-[15px] font-bold leading-none text-amber-700 dark:text-amber-400"
-              style={{ fontFamily: "var(--font-arabic)", direction: "rtl" }}
+              className="arabic-text text-[20px] font-bold text-amber-400"
+              dir="rtl"
+              style={{ letterSpacing: "0.15em" }}
             >
               {familyDisplay}
             </span>
