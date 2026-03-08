@@ -75,7 +75,7 @@ export function VerificationResults({
                 <span className="text-[13px] tabular-nums text-[var(--theme-text-secondary)]">
                   {r.verseKey}
                 </span>
-                <span className="rounded-full bg-red-50 px-2 py-0.5 text-[12px] font-medium text-red-700">
+                <span className="rounded-full bg-red-500/10 px-2 py-0.5 text-[12px] font-medium text-red-500">
                   {r.grade}/5
                 </span>
               </div>

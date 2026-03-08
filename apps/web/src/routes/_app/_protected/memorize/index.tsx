@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Suspense } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useMemorizationDashboard } from "~/hooks/useMemorization";
 import { StatsOverview, SurahSelector, GoalsSettings } from "~/components/memorization";
+import { memorizationRepository, type MemorizationCardEntry } from "@mahfuz/db";
 import { useTranslation } from "~/hooks/useTranslation";
 
 export const Route = createFileRoute("/_app/_protected/memorize/")({
@@ -14,9 +15,13 @@ function MemorizePage() {
   const navigate = useNavigate();
   const { stats, isLoading } = useMemorizationDashboard(userId);
   const { t } = useTranslation();
+  const [allCards, setAllCards] = useState<MemorizationCardEntry[]>([]);
+  useEffect(() => {
+    memorizationRepository.getAllCards(userId).then(setAllCards);
+  }, [userId, stats]);
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-8">
+    <div className="mx-auto max-w-4xl md:max-w-7xl px-6 py-8">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-[var(--theme-text)]">
           {t.memorize.title}
@@ -25,7 +30,7 @@ function MemorizePage() {
           {stats && stats.totalCards > 0 && (
             <button
               onClick={() => navigate({ to: "/memorize/practice" })}
-              className="rounded-xl bg-amber-50 px-4 py-2.5 text-[14px] font-semibold text-amber-700 shadow-sm transition-all hover:bg-amber-100 active:scale-[0.97]"
+              className="rounded-xl border border-[var(--theme-divider)] bg-[var(--theme-bg-primary)] px-4 py-2.5 text-[14px] font-semibold text-[var(--theme-text)] shadow-sm transition-all hover:bg-[var(--theme-hover-bg)] active:scale-[0.97]"
             >
               {t.memorize.practice.button}
             </button>
@@ -58,7 +63,7 @@ function MemorizePage() {
           </div>
         ) : stats ? (
           <>
-            <StatsOverview stats={stats} />
+            <StatsOverview stats={stats} cards={allCards} />
             <details className="group">
               <summary className="cursor-pointer list-none px-1 pb-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--theme-text-tertiary)]">
                 {t.memorize.goals}

@@ -185,12 +185,12 @@ export function FillBlankCard({ card, onGrade }: FillBlankCardProps) {
 
           if (!answered) {
             btnClass +=
-              " border-[var(--theme-divider)] bg-[var(--theme-bg-primary)] text-[var(--theme-text)] hover:border-primary-400 hover:bg-primary-50/50 cursor-pointer";
+              " border-[var(--theme-divider)] bg-[var(--theme-bg-primary)] text-[var(--theme-text)] hover:border-primary-400 hover:bg-primary-500/10 cursor-pointer";
           } else if (idx === correctOptionIndex) {
             btnClass +=
-              " border-emerald-500 bg-emerald-50 text-emerald-700";
+              " border-emerald-500 bg-emerald-500/10 text-emerald-500";
           } else if (idx === selectedIndex) {
-            btnClass += " border-red-500 bg-red-50 text-red-700";
+            btnClass += " border-red-500 bg-red-500/10 text-red-500";
           } else {
             btnClass +=
               " border-[var(--theme-divider)] bg-[var(--theme-bg-primary)] text-[var(--theme-text-tertiary)] opacity-50";

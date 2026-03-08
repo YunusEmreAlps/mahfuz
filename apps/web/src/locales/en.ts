@@ -1,9 +1,10 @@
 import type { Messages } from "./tr";
 
 export const en = {
-  // ── Navigation ──
+  // Navigation
   nav: {
     mahfuz: "Mahfuz",
+    learn: "Learn",
     memorization: "Memorization",
     audio: "Listen",
     bookmarks: "Bookmarks",
@@ -23,7 +24,7 @@ export const en = {
     nextPage: "Next page",
   },
 
-  // ── Common ──
+  // Common
   common: {
     search: "Search",
     close: "Close",
@@ -43,13 +44,13 @@ export const en = {
     local: "Local",
   },
 
-  // ── Footer ──
+  // Footer
   footer: {
-    brand: "Mahfuz — The Holy Quran",
+    brand: "Mahfuz | The Holy Quran",
     tagline: "Open source Quran application",
   },
 
-  // ── Theme & Font ──
+  // Theme & Font
   theme: {
     settings: "Theme settings",
     light: "Light",
@@ -96,20 +97,20 @@ export const en = {
     vivid: "حِبر • Ink",
   },
 
-  // ── Meta / SEO ──
+  // Meta / SEO
   meta: {
     title: "Mahfuz | The Holy Quran",
     description: "Read, listen, and memorize the Holy Quran. Open source Quran application.",
   },
 
-  // ── 404 ──
+  // 404
   error: {
     notFound: "Page Not Found",
     notFoundDesc: "The page you are looking for does not exist.",
     goHome: "Go to Home",
   },
 
-  // ── Landing Page ──
+  // Landing Page
   landing: {
     banner: "By the grace of the Unique Creator",
     goToApp: "Go to App",
@@ -130,14 +131,14 @@ export const en = {
     featureMemorization: "Memorization",
     featureMemorizationDesc: "Hifz support with SM-2 spaced repetition algorithm.",
     featureProgress: "Progress",
-    featureProgressDesc: "Motivation with XP, streaks, badges and khatm counter.",
+    featureProgressDesc: "Motivation with points, streaks, badges and khatm counter.",
     statSurahs: "Surahs",
     statVerses: "Verses",
     statJuzs: "Juz",
     statPages: "Pages",
   },
 
-  // ── Auth ──
+  // Auth
   auth: {
     login: "Sign In",
     loginSubtitle: "Sign in to your account",
@@ -171,7 +172,7 @@ export const en = {
     appleRegisterError: "Apple registration failed. Please try again.",
   },
 
-  // ── Browse ──
+  // Browse
   browse: {
     surahs: "Surahs",
     juzs: "Juz",
@@ -181,7 +182,7 @@ export const en = {
     versesCount: "verses",
   },
 
-  // ── Settings ──
+  // Settings
   settings: {
     title: "Settings",
     subtitle: "Customize your reading experience",
@@ -209,7 +210,7 @@ export const en = {
     sampleTranslation: "In the name of Allah, the Most Gracious, the Most Merciful",
   },
 
-  // ── Reading / Toolbar ──
+  // Reading / Toolbar
   reading: {
     settings: "Reading settings",
     settingsTitle: "Reading Settings",
@@ -224,7 +225,7 @@ export const en = {
     swapOrder: "Swap Order",
   },
 
-  // ── Translation Picker ──
+  // Translation Picker
   translationPicker: {
     selected: "Selected Translations",
     makePrimary: "Make primary",
@@ -233,7 +234,7 @@ export const en = {
     moveDown: "Move down",
   },
 
-  // ── Command Palette ──
+  // Command Palette
   commandPalette: {
     placeholder: "Search surah, verse, page or juz...",
     emptyDesc: "Type a surah name, verse number, page or juz",
@@ -245,12 +246,12 @@ export const en = {
     mushafPage: "Mushaf page",
   },
 
-  // ── Surah Picker ──
+  // Surah Picker
   surahPicker: {
     placeholder: "Search surah...",
   },
 
-  // ── Credits ──
+  // Credits
   credits: {
     title: "Contributors",
     subtitle: "People and resources that made this app possible",
@@ -282,7 +283,7 @@ export const en = {
     },
   },
 
-  // ── Memorization ──
+  // Memorization
   memorize: {
     title: "Memorization",
     startReview: "Start Review",
@@ -332,6 +333,9 @@ export const en = {
       confidenceDist: "Confidence Distribution",
       ofQuran: "of Quran",
       memorized: "Memorized",
+      quranOverview: "Quran Overview",
+      quranLabel: "Quran",
+      remaining: "Remaining",
     },
 
     // Goals
@@ -386,10 +390,17 @@ export const en = {
       noResults: "No surah found",
       noResultsHint: "Try a different search term",
       addedSurahs: "Added Surahs",
-      completedSurahs: "Completed Surahs",
+      completedSurahs: "Completed",
       inProgressSurahs: "In Progress",
       allSurahs: "All Surahs",
+      toMemorize: "To Memorize",
+      noSurahsInColumn: "No surahs in this list",
       markMastered: "Mastered ✓",
+      firstNVerses: "First {n} verses",
+      allVerses: "All ({n} verses)",
+      quickAdding: "Adding...",
+      quickAdded: "verses added!",
+      removeMemorization: "Remove Memorization",
     },
 
     // Practice mode
@@ -419,6 +430,10 @@ export const en = {
       correct: "Correct!",
       wrong: "Wrong",
       selectWord: "Select the missing word",
+      quizTitle: "Memorization Quiz",
+      blanksRemaining: "remaining",
+      tapToFill: "Tap a blank",
+      pickWord: "Pick the correct word",
     },
 
     // Badges
@@ -441,6 +456,13 @@ export const en = {
         "hatim": "Khatm",
         "perfect-session": "Perfect Session",
         "dedicated-50": "Dedicated",
+        "learn-first-lesson": "First Lesson",
+        "learn-alphabet-master": "Alphabet Master",
+        "learn-harakat-hero": "Harakat Hero",
+        "learn-word-reader": "Word Reader",
+        "learn-surah-reader": "Surah Reader",
+        "learn-tajweed-student": "Tajweed Student",
+        "learn-complete": "Quran Reading Master",
       } as Record<string, string>,
     },
 
@@ -460,7 +482,7 @@ export const en = {
     },
   },
 
-  // ── Quran Reader (shared across surah/juz/page/verse views) ──
+  // Quran Reader (shared across surah/juz/page/verse views)
   quranReader: {
     listen: "Listen",
     pause: "Pause",
@@ -504,8 +526,344 @@ export const en = {
     pageAbbr: "p.",
   },
 
-  // ── Offline ──
+  // Learn
+  learn: {
+    title: "Learn to Read Quran",
+    subtitle: "Learn Arabic letters, diacritics and tajweed rules from scratch",
+    backToLearn: "← Learn",
+    lesson: "Lesson",
+    lessons: "lessons",
+    exerciseCount: "exercise",
+    exerciseCountPlural: "exercises",
+    pointLabel: "Point",
+    completedLessons: "Completed",
+    totalStages: "Stages",
+    startExercises: "Start Exercises",
+    completeLesson: "Complete Lesson",
+    correct: "Correct!",
+    incorrect: "Incorrect",
+    lessonComplete: "Lesson Complete!",
+    perfectScore: "Perfect Score!",
+    firstCompletion: "First completion, bonus Point!",
+    retry: "Retry",
+    stageLocked: "Stage Locked",
+    stageLockedDesc: "Complete previous stages to unlock this one.",
+    practiceTitle: "Adaptive Practice",
+    noPractice: "Great Work!",
+    noPracticeDesc: "No concepts due for review. Continue with new lessons!",
+    conceptsDue: "concepts due for review",
+    makhraj: "Makhraj",
+    dots: "Dots",
+    noDots: "No dots",
+    above: "above",
+    below: "below",
+    nonConnector: "Non-connecting letter",
+    nonConnectorNote: "This letter does not connect to the following letter",
+    forms: {
+      isolated: "Isolated",
+      initial: "Initial",
+      medial: "Medial",
+      final: "Final",
+    },
+    stages: {
+      letters: { title: "Letters", desc: "Learn all 28 Arabic letters" },
+      connecting: { title: "Connecting Forms", desc: "Letter shapes within words" },
+      fatha: { title: "Fatha (Ustun)", desc: "Reading with fatha diacritic" },
+      kasra: { title: "Kasra (Esre)", desc: "Reading with kasra diacritic" },
+      damma: { title: "Damma (Otre)", desc: "Reading with damma diacritic" },
+      longVowels: { title: "Long Vowels (Madd)", desc: "Extension with Alif, Waw, Ya" },
+      sukun: { title: "Sukun", desc: "Silent letters and syllable structure" },
+      tanwin: { title: "Tanwin", desc: "Double diacritics (an, in, un)" },
+      shadda: { title: "Shadda", desc: "Double consonant, tashdeed" },
+      basicWords: { title: "Basic Words", desc: "50 most common Quranic words" },
+      shortSurahs: { title: "Short Surahs", desc: "Fatiha, Ikhlas, Nas, Falaq..." },
+      basicTajweed: { title: "Basic Tajweed", desc: "Qalqala, ghunna, idgham" },
+      maddRules: { title: "Madd Rules", desc: "Muttasil, munfasil, arid" },
+      advancedTajweed: { title: "Advanced Tajweed", desc: "Ikhfa, iqlab, izhar" },
+    },
+    exercises: {
+      whichLetter: "Which letter is this?",
+      findLetter: "What is the name of this letter?",
+      howToRead: "How is this read?",
+      readWord: "Read this word",
+      findInitialForm: "What form is this?",
+      identifyForm: "What is the form of this letter?",
+      whichNonConnecting: "Which is the non-connecting letters group?",
+      findLetterInWord: "What are the letter forms in this word?",
+      howManyLetters: "How many letters are in this word?",
+      whichMedType: "Which type of madd is in this word?",
+      whatIsSukun: "How is this letter with sukun read?",
+      findSukun: "Which letters have sukun in this word?",
+      countSukun: "How many sukun are in this word?",
+      whatTanwin: "What does this tanwin sign indicate?",
+      identifyTanwin: "What type of tanwin is in this word?",
+      whatIsShadda: "What does shadda mean?",
+      findShadda: "Which letter has shadda?",
+      identifyTajweed: "What is this tajweed rule?",
+      whichQalqala: "Which are the qalqala letters?",
+      whatIsGhunna: "What is ghunna?",
+      idghamLetters: "Which are the idgham letters?",
+      shamsOrQamar: "Is it Shamsiyya or Qamariyya?",
+      identifyMaddType: "Which type of madd is this?",
+      whatIsMuttasil: "What is Madd Muttasil?",
+      muttasilOrMunfasil: "Is it Muttasil or Munfasil?",
+      whatIsArid: "What is Madd Arid?",
+      whatIsLazim: "What is Madd Lazim?",
+      identifyNunRule: "What is the rule for this nun sakinah?",
+      whatIsIqlab: "What is Iqlab?",
+      izharLetters: "Which are the izhar letters?",
+      raThickOrThin: "Is this ra thick or thin?",
+      lamThickOrThin: "Is the lam in Lafzatullah thick or thin?",
+      whatIsWaqf: "What is Waqf?",
+      waqfSign: "What does this waqf sign mean?",
+    },
+    badges: {
+      "learn-first-lesson": "First Lesson",
+      "learn-alphabet-master": "Alphabet Master",
+      "learn-harakat-hero": "Harakat Hero",
+      "learn-word-reader": "Word Reader",
+      "learn-surah-reader": "Surah Reader",
+      "learn-tajweed-student": "Tajweed Student",
+      "learn-complete": "Quran Reading Master",
+    } as Record<string, string>,
+
+    // Stage 1: Letters
+    "s1.l1.title": "Alif Family",
+    "s1.l1.intro": "Our first letter is Alif (ا). The first letter of the Arabic alphabet, Alif is a straight vertical line and is used as a silent letter on its own.",
+    "s1.l1.tip": "Alif is a non-connecting letter. It does not connect to the letter after it.",
+    "s1.l2.title": "Ba Family (ب ت ث)",
+    "s1.l2.intro": "In this lesson you will learn three letters that share the same body: Ba (ب), Ta (ت), and Tha (ث). They differ by the number and position of dots.",
+    "s1.l2.tip": "Ba has 1 dot below, Ta has 2 dots above, Tha has 3 dots above.",
+    "s1.l3.title": "Jim Family (ج ح خ)",
+    "s1.l3.intro": "Jim (ج), Ha (ح), and Kha (خ) share the same body shape. They are distinguished by their dots.",
+    "s1.l3.tip": "Jim has a dot below, Kha has a dot above. Ha has no dots.",
+    "s1.l4.title": "Dal Family (د ذ) & Ra Family (ر ز)",
+    "s1.l4.intro": "In this lesson you will learn four non-connecting letters: Dal (د), Dhal (ذ), Ra (ر), and Za (ز).",
+    "s1.l4.tip": "These four letters are non-connectors. They don't connect to the following letter.",
+    "s1.l5.title": "Sin Family (س ش)",
+    "s1.l5.intro": "You will learn Sin (س) and Shin (ش). Both have three tooth-like serrations.",
+    "s1.l5.tip": "Sin has no dots, Shin has three dots above.",
+    "s1.l6.title": "Sad Family (ص ض) & Ta Family (ط ظ)",
+    "s1.l6.intro": "Heavy letters: Sad (ص), Dad (ض), Tah (ط), and Zah (ظ). These sounds are produced from the back of the tongue.",
+    "s1.l6.tip": "These are 'heavy' (emphatic) letters. Pronounce them by pressing the tongue toward the palate.",
+    "s1.l7.title": "Ayn Family (ع غ) & Fa (ف)",
+    "s1.l7.intro": "You will learn Ayn (ع), Ghayn (غ), and Fa (ف). Ayn is a special throat sound.",
+    "s1.l7.tip": "Ayn and Ghayn are throat letters. Ayn has no dots, Ghayn has one dot above.",
+    "s1.l8.title": "Qaf, Kaf, Lam, Mim (ق ك ل م)",
+    "s1.l8.intro": "In this lesson you will learn four important letters: Qaf (ق), Kaf (ك), Lam (ل), and Mim (م).",
+    "s1.l9.title": "Nun, Ha, Waw, Ya (ن ه و ي)",
+    "s1.l9.intro": "The last four letters of the alphabet: Nun (ن), Ha (ه), Waw (و), and Ya (ي). Waw is a non-connecting letter.",
+    "s1.l9.tip": "Waw is a non-connecting letter. Ya has two dots below.",
+
+    // Stage 2: Connecting Forms
+    "s2.l1.title": "Initial Form",
+    "s2.l1.intro": "Arabic letters take different forms within words. In this lesson you will learn the form letters take at the beginning of a word (initial form).",
+    "s2.l2.title": "Medial and Final Forms",
+    "s2.l2.intro": "You will learn the forms letters take in the middle (medial) and at the end (final) of words.",
+    "s2.l3.title": "Non-Connecting Letters",
+    "s2.l3.intro": "Six letters do not connect to the following letter: Alif (ا), Dal (د), Dhal (ذ), Ra (ر), Za (ز), Waw (و). Learn to recognize them.",
+    "s2.l3.tip": "Remember the non-connectors with the mnemonic: Alif, Dal, Dhal, Ra, Za, Waw.",
+    "s2.l4.title": "Form Recognition Practice",
+    "s2.l4.intro": "Practice all the forms you have learned with mixed examples. Reinforce recognizing all four forms of each letter.",
+    "s2.l5.title": "Forms Within Words",
+    "s2.l5.intro": "Examine how letters connect and change form in real Arabic words.",
+
+    // Stage 3: Fatha
+    "s3.l1.title": "What is Fatha?",
+    "s3.l1.intro": "Fatha is the small line placed above a letter (ـَ). It gives the letter an 'a/e' sound. It is the most commonly used vowel mark.",
+    "s3.l1.tip": "Fatha is placed above the letter and produces an 'a' or 'e' sound.",
+    "s3.l2.title": "Ba-Tha Group + Fatha",
+    "s3.l2.intro": "You will learn to read Ba (بَ), Ta (تَ), Tha (ثَ), and Jim (جَ) with fatha.",
+    "s3.l3.title": "Ha-Dhal Group + Fatha",
+    "s3.l3.intro": "Practice reading Ha (حَ), Kha (خَ), Dal (دَ), and Dhal (ذَ) with fatha.",
+    "s3.l4.title": "Ra-Shin Group + Fatha",
+    "s3.l4.intro": "Read Ra (رَ), Za (زَ), Sin (سَ), and Shin (شَ) with fatha.",
+    "s3.l5.title": "Sad-Zah Group + Fatha",
+    "s3.l5.intro": "Learn the emphatic letters Sad (صَ), Dad (ضَ), Tah (طَ), and Zah (ظَ) with fatha.",
+    "s3.l6.title": "Ayn-Qaf Group + Fatha",
+    "s3.l6.intro": "Read Ayn (عَ), Ghayn (غَ), Fa (فَ), and Qaf (قَ) with fatha.",
+    "s3.l7.title": "Kaf-Ya Group + Fatha",
+    "s3.l7.intro": "Last group: Kaf (كَ), Lam (لَ), Mim (مَ), Nun (نَ), Ha (هَ), Waw (وَ), Ya (يَ), and Alif (اَ) with fatha.",
+
+    // Stage 4: Kasra
+    "s4.l1.title": "Ba-Jim Group + Kasra",
+    "s4.l1.intro": "Kasra is the small line placed below a letter (ـِ). It gives the letter an 'i' sound. In this group you will learn Ba (بِ), Ta (تِ), Tha (ثِ), and Jim (جِ) with kasra.",
+    "s4.l2.title": "Ha-Dhal Group + Kasra",
+    "s4.l2.intro": "Practice reading Ha (حِ), Kha (خِ), Dal (دِ), and Dhal (ذِ) with kasra.",
+    "s4.l3.title": "Ra-Shin Group + Kasra",
+    "s4.l3.intro": "Read Ra (رِ), Za (زِ), Sin (سِ), and Shin (شِ) with kasra.",
+    "s4.l4.title": "Sad-Zah Group + Kasra",
+    "s4.l4.intro": "Emphatic letters Sad (صِ), Dad (ضِ), Tah (طِ), and Zah (ظِ) with kasra.",
+    "s4.l5.title": "Ayn-Qaf Group + Kasra",
+    "s4.l5.intro": "Read Ayn (عِ), Ghayn (غِ), Fa (فِ), and Qaf (قِ) with kasra.",
+    "s4.l6.title": "Kaf-Nun Group + Kasra",
+    "s4.l6.intro": "Read Kaf (كِ), Lam (لِ), Mim (مِ), and Nun (نِ) with kasra.",
+    "s4.l7.title": "Ha-Alif Group + Kasra",
+    "s4.l7.intro": "Last group: Ha (هِ), Waw (وِ), Ya (يِ), and Alif (اِ) with kasra.",
+
+    // Stage 5: Damma
+    "s5.l1.title": "Ba-Jim Group + Damma",
+    "s5.l1.intro": "Damma is the small waw-shaped mark placed above a letter (ـُ). It gives the letter a 'u' sound. In this group you will learn Ba (بُ), Ta (تُ), Tha (ثُ), and Jim (جُ) with damma.",
+    "s5.l2.title": "Ha-Dhal Group + Damma",
+    "s5.l2.intro": "Practice reading Ha (حُ), Kha (خُ), Dal (دُ), and Dhal (ذُ) with damma.",
+    "s5.l3.title": "Ra-Shin Group + Damma",
+    "s5.l3.intro": "Read Ra (رُ), Za (زُ), Sin (سُ), and Shin (شُ) with damma.",
+    "s5.l4.title": "Sad-Zah Group + Damma",
+    "s5.l4.intro": "Emphatic letters Sad (صُ), Dad (ضُ), Tah (طُ), and Zah (ظُ) with damma.",
+    "s5.l5.title": "Ayn-Qaf Group + Damma",
+    "s5.l5.intro": "Read Ayn (عُ), Ghayn (غُ), Fa (فُ), and Qaf (قُ) with damma.",
+    "s5.l6.title": "Kaf-Nun Group + Damma",
+    "s5.l6.intro": "Read Kaf (كُ), Lam (لُ), Mim (مُ), and Nun (نُ) with damma.",
+    "s5.l7.title": "Ha-Alif Group + Damma",
+    "s5.l7.intro": "Last group: Ha (هُ), Waw (وُ), Ya (يُ), and Alif (اُ) with damma.",
+
+    // Stage 6: Long Vowels (Madd)
+    "s6.l1.title": "Alif Madd",
+    "s6.l1.intro": "The letter alif combines with a preceding fatha to produce the long 'aa' sound. In this lesson, you will learn alif madd.",
+    "s6.l1.tip": "When you see alif madd, stretch the sound for about two counts (two alif lengths).",
+    "s6.l2.title": "Waw Madd",
+    "s6.l2.intro": "The letter waw combines with a preceding damma to produce the long 'oo' sound. This lesson introduces waw madd.",
+    "s6.l2.tip": "For waw madd, keep your lips rounded while extending the sound.",
+    "s6.l3.title": "Ya Madd",
+    "s6.l3.intro": "The letter ya combines with a preceding kasra to produce the long 'ee' sound. This lesson covers ya madd.",
+    "s6.l3.tip": "For ya madd, push your tongue forward and spread your lips while extending.",
+    "s6.l4.title": "Madd Letters Practice",
+    "s6.l4.intro": "Practice alif, waw, and ya madd together. Reinforce all three madd letters with mixed examples.",
+
+    // Stage 7: Sukun
+    "s7.l1.title": "What Is Sukun?",
+    "s7.l1.intro": "Sukun is a small circle (ـْ) placed above a letter indicating it has no vowel and is silent. It marks a consonant stop.",
+    "s7.l1.tip": "A letter with sukun is not voiced on its own. It is read together with the preceding voweled letter.",
+    "s7.l2.title": "CVC Syllable Structure",
+    "s7.l2.intro": "The Consonant-Vowel-Consonant (CVC) pattern is the fundamental Arabic syllable. In this lesson you will read syllables ending with sukun.",
+    "s7.l3.title": "Multiple Sukun",
+    "s7.l3.intro": "Some words contain more than one sukun. In this lesson you will practice reading words with multiple silent consonants.",
+    "s7.l4.title": "Sukun in Quranic Words",
+    "s7.l4.intro": "Recognize and correctly read commonly occurring Quranic words that contain sukun.",
+    "s7.l5.title": "Sukun Practice",
+    "s7.l5.intro": "Review all sukun rules with mixed exercises. Focus on correctly separating syllables as you read.",
+
+    // Stage 8: Tanwin
+    "s8.l1.title": "Fathatan (Tanwin -an)",
+    "s8.l1.intro": "Fathatan is the double fatha sign (ـً) at the end of a word, producing an '-an' sound. It is usually accompanied by an alif.",
+    "s8.l1.tip": "When you see fathatan, end the word with a clear '-an' sound.",
+    "s8.l2.title": "Kasratan (Tanwin -in)",
+    "s8.l2.intro": "Kasratan is the double kasra sign (ـٍ) at the end of a word, producing an '-in' sound.",
+    "s8.l3.title": "Dammatan (Tanwin -un)",
+    "s8.l3.intro": "Dammatan is the double damma sign (ـٌ) at the end of a word, producing an '-un' sound.",
+    "s8.l4.title": "Tanwin Practice",
+    "s8.l4.intro": "Reinforce all three tanwin types with mixed examples. Build skill in recognizing and reading the correct tanwin.",
+
+    // Stage 9: Shadda
+    "s9.l1.title": "What Is Shadda?",
+    "s9.l1.intro": "Shadda (ـّ) indicates that a consonant is doubled. The first occurrence is silent (sukun) and the second carries a vowel.",
+    "s9.l1.tip": "When reading shadda, think of it as two letters: first stop, then voice the vowel, like pressing the consonant twice.",
+    "s9.l2.title": "Shadda with Vowels",
+    "s9.l2.intro": "Shadda can combine with fatha, kasra, or damma. This lesson covers how shadda sounds with each vowel.",
+    "s9.l3.title": "Common Shadda Words",
+    "s9.l3.intro": "Learn to recognize and correctly pronounce frequently occurring Quranic words that contain shadda.",
+    "s9.l4.title": "Shadda Practice",
+    "s9.l4.intro": "Review all shadda rules with mixed exercises. Learn to distinguish words with and without shadda.",
+
+    // Stage 10: Basic Words
+    "s10.l1.title": "Basic Words 1",
+    "s10.l1.intro": "First group of the most common Quranic words: Allah, Rabb, kitab, ilm, yawm.",
+    "s10.l2.title": "Basic Words 2",
+    "s10.l2.intro": "Second word group: qalb, ard, sama, nar, jannah.",
+    "s10.l3.title": "Basic Words 3",
+    "s10.l3.intro": "Third word group: nafs, ma, haqq, amr, qawm.",
+    "s10.l4.title": "Basic Words 4",
+    "s10.l4.intro": "Fourth word group: din, rahma, shay, abd, malak.",
+    "s10.l5.title": "Basic Words 5",
+    "s10.l5.intro": "Fifth word group: salat, ayah, nur, dhikr, sabr.",
+    "s10.l6.title": "Basic Words 6",
+    "s10.l6.intro": "Sixth word group: tawba, huda, batil, kufr, iman.",
+    "s10.l7.title": "Basic Words 7",
+    "s10.l7.intro": "Seventh word group: mawt, hayat, rizq, adhab, thawab.",
+    "s10.l8.title": "Basic Words 8",
+    "s10.l8.intro": "Eighth word group: fitna, jihad, sirat, mustaqim, zulm.",
+    "s10.l9.title": "Basic Words 9",
+    "s10.l9.intro": "Ninth word group: shukr, khayr, sharr, adl, rasul.",
+    "s10.l10.title": "Basic Words 10",
+    "s10.l10.intro": "Tenth word group: mu'min, kafir, munafiq, taqwa, subhan.",
+
+    // Stage 11: Short Surahs
+    "s11.l1.title": "Surah Al-Fatiha",
+    "s11.l1.intro": "Read the opening surah of the Quran verse by verse. Master the correct pronunciation of this surah recited in every prayer.",
+    "s11.l2.title": "Surah Al-Ikhlas",
+    "s11.l2.intro": "Learn to read Surah Al-Ikhlas, the essence of monotheism. A short surah with profound meaning.",
+    "s11.l3.title": "Surah An-Nas",
+    "s11.l3.intro": "Read Surah An-Nas, which teaches seeking refuge in Allah from the evil of people.",
+    "s11.l4.title": "Surah Al-Falaq",
+    "s11.l4.intro": "Practice reading Surah Al-Falaq, which teaches seeking refuge in Allah from the evil of creation.",
+    "s11.l5.title": "Surah Al-Lahab",
+    "s11.l5.intro": "Learn to read Surah Al-Lahab (Al-Masad) with correct pronunciation.",
+    "s11.l6.title": "Surah An-Nasr",
+    "s11.l6.intro": "Read Surah An-Nasr, which describes the help and victory of Allah.",
+    "s11.l7.title": "Surah Al-Kafirun",
+    "s11.l7.intro": "Practice reading Surah Al-Kafirun, a clear declaration of monotheism.",
+    "s11.l8.title": "Surah Al-Kawthar",
+    "s11.l8.intro": "Read Surah Al-Kawthar, the shortest surah in the Quran.",
+
+    // Stage 12: Basic Tajweed
+    "s12.l1.title": "Qalqala",
+    "s12.l1.intro": "Qalqala is a bouncing sound produced when certain letters carry sukun. It applies to the letters: ق، ط، ب، ج، د.",
+    "s12.l1.tip": "Remember the qalqala letters with the mnemonic 'QaTaBaJaDa'.",
+    "s12.l2.title": "Ghunna",
+    "s12.l2.intro": "Ghunna is the nasal sound produced through the nose when pronouncing nun (ن) and mim (م) with shadda. It is held for two counts.",
+    "s12.l2.tip": "When making ghunna, let the sound resonate through your nose for two beats.",
+    "s12.l3.title": "Idgham",
+    "s12.l3.intro": "Idgham is the merging of one letter into the next. It is applied when a nun sakinah or tanwin is followed by the letters يَرْمَلُون.",
+    "s12.l4.title": "Lam Shamsiyya",
+    "s12.l4.intro": "In the definite article Al-, the lam is silent before Shamsiyya (sun) letters and assimilates into the following letter.",
+    "s12.l4.tip": "In الشَّمْس (ash-shams), the lam is silent and the shin carries shadda.",
+    "s12.l5.title": "Lam Qamariyya",
+    "s12.l5.intro": "In the definite article Al-, the lam is clearly pronounced before Qamariyya (moon) letters.",
+    "s12.l5.tip": "In الْقَمَر (al-qamar), the lam is clearly pronounced because qaf is a Qamariyya letter.",
+    "s12.l6.title": "Tajweed Practice",
+    "s12.l6.intro": "Review qalqala, ghunna, idgham, Shamsiyya and Qamariyya rules with mixed examples.",
+
+    // Stage 13: Madd Rules
+    "s13.l1.title": "Madd Muttasil",
+    "s13.l1.intro": "Madd Muttasil occurs when a madd letter is followed by a hamza within the same word. It is obligatory and stretched for 4-5 counts.",
+    "s13.l1.tip": "Muttasil: madd + hamza in the same word = obligatory 4-5 count stretch.",
+    "s13.l2.title": "Madd Munfasil",
+    "s13.l2.intro": "Madd Munfasil occurs when a madd letter is followed by a hamza in the next word. It is permissible and can be stretched 2-5 counts.",
+    "s13.l3.title": "Madd Arid",
+    "s13.l3.intro": "Madd Arid occurs when a madd letter is followed by a temporary sukun due to a stop (waqf). It can be stretched 2, 4, or 6 counts.",
+    "s13.l3.tip": "With Madd Arid, you may freely choose to stretch for 2, 4, or 6 counts when stopping.",
+    "s13.l4.title": "Madd Lazim",
+    "s13.l4.intro": "Madd Lazim occurs when a madd letter is followed by a permanent sukun or shadda. It must be stretched for exactly 6 counts.",
+    "s13.l4.tip": "Madd Lazim is always 6 counts. The longest type of madd.",
+    "s13.l5.title": "Madd Rules Practice",
+    "s13.l5.intro": "Reinforce all four madd types with mixed examples. Review the duration and conditions for each type of madd.",
+
+    // Stage 14: Advanced Tajweed
+    "s14.l1.title": "Ikhfa",
+    "s14.l1.intro": "Ikhfa is when a nun sakinah or tanwin is followed by one of the ikhfa letters, causing the nun sound to be hidden and read with a nasal ghunna.",
+    "s14.l1.tip": "There are 15 ikhfa letters. The nun sound is not fully pronounced. It is lightly felt through ghunna.",
+    "s14.l2.title": "Iqlab",
+    "s14.l2.intro": "Iqlab occurs when a nun sakinah or tanwin is followed by the letter ba (ب). The nun sound is converted into a mim.",
+    "s14.l2.tip": "Iqlab only happens before ba: nun transforms into mim, then ghunna is applied.",
+    "s14.l3.title": "Izhar",
+    "s14.l3.intro": "Izhar occurs when a nun sakinah or tanwin is followed by one of the six throat letters. The nun is pronounced clearly.",
+    "s14.l3.tip": "The 6 izhar (throat) letters are: ء، ه، ع، ح، غ، خ. The nun is read clearly and distinctly.",
+    "s14.l4.title": "Combined Rules",
+    "s14.l4.intro": "Practice ikhfa, iqlab, and izhar rules together with mixed examples. Build skill in identifying the correct rule to apply.",
+    "s14.l5.title": "Ra Rules",
+    "s14.l5.intro": "Learn the rules for pronouncing ra as thick (tafkhim) or thin (tarqiq) depending on context.",
+    "s14.l5.tip": "Ra is thick after fatha or damma, and generally thin after kasra.",
+    "s14.l6.title": "Lam Rules",
+    "s14.l6.intro": "Learn the rules for pronouncing the lam in Lafzatullah (the word Allah) as thick or thin.",
+    "s14.l7.title": "Waqf (Stopping Signs)",
+    "s14.l7.intro": "Learn the waqf (stopping) signs in the Quran and understand where to stop and where to continue reading.",
+    "s14.l7.tip": "ط means obligatory stop, ج means permissible stop, لا means you should continue.",
+    "s14.l8.title": "Final Review",
+    "s14.l8.intro": "A comprehensive final review covering all tajweed rules. Reinforce everything you have learned with mixed examples and earn your certificate.",
+  },
+
+  // Offline
   offline: {
-    message: "You are offline — Showing cached data",
+    message: "You are offline. Showing cached data",
   },
 } as const satisfies Messages;

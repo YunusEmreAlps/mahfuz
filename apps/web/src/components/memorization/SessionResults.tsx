@@ -55,8 +55,8 @@ export function SessionResults({ results, onContinue }: SessionResultsProps) {
             <span
               className={`rounded-full px-2 py-0.5 text-[12px] font-medium ${
                 r.wasCorrect
-                  ? "bg-emerald-50 text-emerald-700"
-                  : "bg-red-50 text-red-700"
+                  ? "bg-emerald-500/10 text-emerald-500"
+                  : "bg-red-500/10 text-red-500"
               }`}
             >
               {r.grade}/5
