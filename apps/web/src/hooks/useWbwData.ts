@@ -5,6 +5,7 @@
 import { queryOptions } from "@tanstack/react-query";
 import { quranApi } from "~/lib/api";
 import type { GetVersesParams } from "@mahfuz/shared/types";
+import { QUERY_KEYS } from "~/lib/query-keys";
 
 const WBW_PARAMS: GetVersesParams = {
   words: true,
@@ -20,7 +21,7 @@ const WBW_PARAMS: GetVersesParams = {
  */
 export const wbwByChapterQueryOptions = (chapterId: number) =>
   queryOptions({
-    queryKey: ["wbw", "chapter", chapterId],
+    queryKey: QUERY_KEYS.wbw.chapter(chapterId),
     queryFn: async () => {
       // Fetch all pages of WBW data
       const firstPage = await quranApi.verses.byChapter(chapterId, {

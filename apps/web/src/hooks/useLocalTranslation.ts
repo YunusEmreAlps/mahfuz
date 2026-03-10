@@ -1,5 +1,6 @@
 import { useQueries } from "@tanstack/react-query";
 import { useMemo } from "react";
+import { QUERY_KEYS } from "~/lib/query-keys";
 
 interface LocalTranslationData {
   id: string;
@@ -15,7 +16,7 @@ interface LocalTranslationData {
 export function useLocalTranslations(ids: string[]) {
   const results = useQueries({
     queries: ids.map((id) => ({
-      queryKey: ["local-translation", id],
+      queryKey: QUERY_KEYS.localTranslation(id),
       queryFn: async () => {
         const resp = await fetch(`/translations/${id}.json`);
         if (!resp.ok) throw new Error(`Failed to load translation: ${id}`);

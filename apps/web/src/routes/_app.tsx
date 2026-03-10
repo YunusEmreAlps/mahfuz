@@ -16,6 +16,7 @@ import { useSyncStore } from "~/stores/useSyncStore";
 import { SyncEngine } from "~/lib/sync-engine";
 import type { Chapter } from "@mahfuz/shared/types";
 import { TOTAL_PAGES } from "@mahfuz/shared/constants";
+import { QUERY_KEYS } from "~/lib/query-keys";
 
 export const Route = createFileRoute("/_app")({
   component: AppLayout,
@@ -81,9 +82,9 @@ function AppLayout() {
     ? Number((surahMatch!.params as { surahId: string }).surahId)
     : null;
   const chapter = surahId
-    ? queryClient.getQueryData<Chapter>(["chapter-static", surahId])
+    ? queryClient.getQueryData<Chapter>(QUERY_KEYS.chapter(surahId))
     : null;
-  const allChapters = queryClient.getQueryData<Chapter[]>(["chapters-static"]);
+  const allChapters = queryClient.getQueryData<Chapter[]>(QUERY_KEYS.chapters());
 
   // Detect page route
   const pageMatch = matches.find((m) => m.routeId === "/_app/page/$pageNumber");

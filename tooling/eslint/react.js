@@ -23,4 +23,21 @@ export default [
       "react-hooks/exhaustive-deps": "warn",
     },
   },
+  // Bug prevention: inline cache keys → must use QUERY_KEYS
+  {
+    files: ["**/*.ts", "**/*.tsx"],
+    rules: {
+      "no-restricted-syntax": [
+        "warn",
+        {
+          selector: "CallExpression[callee.property.name='getQueryData'] > ArrayExpression",
+          message: "Use QUERY_KEYS constants instead of inline cache key arrays.",
+        },
+        {
+          selector: "CallExpression[callee.property.name='setQueryData'] > ArrayExpression",
+          message: "Use QUERY_KEYS constants instead of inline cache key arrays.",
+        },
+      ],
+    },
+  },
 ];

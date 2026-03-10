@@ -10,6 +10,7 @@ import {
   loadQuranMeta,
 } from "~/lib/quran-data";
 import { usePreferencesStore } from "~/stores/usePreferencesStore";
+import { QUERY_KEYS } from "~/lib/query-keys";
 
 function getTextType(): TextType {
   return usePreferencesStore.getState().textType ?? "uthmani";
@@ -21,7 +22,7 @@ export const versesByChapterQueryOptions = (
   _params: Record<string, unknown> = {}
 ) =>
   queryOptions({
-    queryKey: ["static-verses", "chapter", chapterId, getTextType()],
+    queryKey: QUERY_KEYS.staticVerses.chapter(chapterId, getTextType()),
     queryFn: async () => {
       const textType = getTextType();
       const verses = await loadSurahVerses(chapterId, textType);
@@ -39,7 +40,7 @@ export const versesByPageQueryOptions = (
   _params: Record<string, unknown> = {}
 ) =>
   queryOptions({
-    queryKey: ["static-verses", "page", pageNumber, getTextType()],
+    queryKey: QUERY_KEYS.staticVerses.page(pageNumber, getTextType()),
     queryFn: async () => {
       const textType = getTextType();
       const meta = await loadQuranMeta();
@@ -66,7 +67,7 @@ export const versesByJuzQueryOptions = (
   _params: Record<string, unknown> = {}
 ) =>
   queryOptions({
-    queryKey: ["static-verses", "juz", juzNumber, getTextType()],
+    queryKey: QUERY_KEYS.staticVerses.juz(juzNumber, getTextType()),
     queryFn: async () => {
       const textType = getTextType();
       const meta = await loadQuranMeta();
@@ -102,7 +103,7 @@ export const verseByKeyQueryOptions = (
   _params: Record<string, unknown> = {}
 ) =>
   queryOptions({
-    queryKey: ["static-verse", verseKey, getTextType()],
+    queryKey: QUERY_KEYS.staticVerse(verseKey, getTextType()),
     queryFn: async () => {
       const textType = getTextType();
       const [surahId, verseNum] = verseKey.split(":").map(Number);

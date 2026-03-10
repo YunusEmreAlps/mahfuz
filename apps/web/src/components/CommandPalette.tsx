@@ -6,6 +6,7 @@ import { searchQueryOptions } from "~/hooks/useSearch";
 import { TOTAL_PAGES, TOTAL_JUZ, TOTAL_CHAPTERS } from "@mahfuz/shared/constants";
 import type { Chapter } from "@mahfuz/shared/types";
 import { useTranslation } from "~/hooks/useTranslation";
+import { QUERY_KEYS } from "~/lib/query-keys";
 
 // Turkish character normalization for fuzzy matching
 function normalize(s: string): string {
@@ -228,7 +229,7 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
   const queryClient = useQueryClient();
 
   // Get chapters from cache (already loaded by layout)
-  const chapters = queryClient.getQueryData<Chapter[]>(["chapters-static"]) ?? [];
+  const chapters = queryClient.getQueryData<Chapter[]>(QUERY_KEYS.chapters()) ?? [];
 
   // Structural (instant) results
   const navResults = useMemo(

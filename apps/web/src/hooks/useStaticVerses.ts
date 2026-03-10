@@ -5,6 +5,7 @@ import {
   loadSurahVerses,
   loadQuranMeta,
 } from "~/lib/quran-data";
+import { QUERY_KEYS } from "~/lib/query-keys";
 
 /**
  * All verses for a surah — loaded from static JSON (no pagination needed).
@@ -14,7 +15,7 @@ export const staticVersesByChapterQueryOptions = (
   textType: TextType
 ) =>
   queryOptions({
-    queryKey: ["static-verses", "chapter", chapterId, textType],
+    queryKey: QUERY_KEYS.staticVerses.chapter(chapterId, textType),
     queryFn: async () => {
       const data = await loadSurahText(chapterId, textType);
       const verses = await loadSurahVerses(chapterId, textType);
@@ -35,7 +36,7 @@ export const staticVersesByPageQueryOptions = (
   textType: TextType
 ) =>
   queryOptions({
-    queryKey: ["static-verses", "page", pageNumber, textType],
+    queryKey: QUERY_KEYS.staticVerses.page(pageNumber, textType),
     queryFn: async () => {
       const meta = await loadQuranMeta();
       const surahIds = meta.pageToSurahs[pageNumber] ?? [];
@@ -61,7 +62,7 @@ export const staticVersesByJuzQueryOptions = (
   textType: TextType
 ) =>
   queryOptions({
-    queryKey: ["static-verses", "juz", juzNumber, textType],
+    queryKey: QUERY_KEYS.staticVerses.juz(juzNumber, textType),
     queryFn: async () => {
       const meta = await loadQuranMeta();
       const boundary = meta.juzBoundaries[juzNumber];
@@ -95,7 +96,7 @@ export const staticVerseByKeyQueryOptions = (
   textType: TextType
 ) =>
   queryOptions({
-    queryKey: ["static-verse", verseKey, textType],
+    queryKey: QUERY_KEYS.staticVerse(verseKey, textType),
     queryFn: async () => {
       const [surahId, verseNum] = verseKey.split(":").map(Number);
       const verses = await loadSurahVerses(surahId, textType);
