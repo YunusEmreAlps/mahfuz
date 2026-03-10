@@ -111,6 +111,22 @@ export function tanzilToVerses(
     verse.text_uthmani = tv.t;
     verse.text_imlaei = tv.t;
 
+    // Generate synthetic words from text for memorization components
+    const wordTexts = tv.t.split(/\s+/).filter(Boolean);
+    verse.words = wordTexts.map((wt, idx) => ({
+      id: surahId * 1000000 + tv.v * 1000 + idx + 1,
+      position: idx + 1,
+      audio_url: null,
+      char_type_name: "word" as const,
+      text_uthmani: wt,
+      text_imlaei: wt,
+      text: wt,
+      page_number: tv.p,
+      line_number: 1,
+      translation: { text: "", language_name: "turkish" },
+      transliteration: { text: "", language_name: "english" },
+    }));
+
     return verse;
   });
 }

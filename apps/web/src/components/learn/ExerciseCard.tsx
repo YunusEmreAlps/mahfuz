@@ -117,7 +117,7 @@ export function ExerciseCard({ exercise, onAnswer, exerciseNumber, totalExercise
             ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400"
             : "bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400"
         }`}>
-          {exercise.options[selectedIndex].isCorrect
+          {shuffledOptions[selectedIndex].isCorrect
             ? t.learn.correct
             : t.learn.incorrect}
         </div>
