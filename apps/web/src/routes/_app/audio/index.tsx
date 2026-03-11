@@ -81,7 +81,7 @@ function AudioPage() {
   const [reciterOpen, setReciterOpen] = useState(false);
 
   return (
-    <div className="mx-auto max-w-[680px] px-5 py-8 sm:px-6 sm:py-10">
+    <div className="mx-auto max-w-[960px] px-5 py-8 sm:px-6 sm:py-10 lg:max-w-[1200px]">
       {/* Page header */}
       <h1 className="mb-8 text-[28px] font-bold tracking-tight text-[var(--theme-text)]">
         Dinleme

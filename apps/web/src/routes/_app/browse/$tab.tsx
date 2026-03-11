@@ -35,7 +35,7 @@ export const Route = createFileRoute("/_app/browse/$tab")({
     ]);
   },
   pendingComponent: () => (
-    <div className="mx-auto max-w-[680px] px-5 py-5 sm:px-6 sm:py-10 lg:max-w-[960px]">
+    <div className="mx-auto max-w-[960px] px-5 py-5 sm:px-6 sm:py-10 lg:max-w-[1200px]">
       <Skeleton className="mb-5 h-8 w-40" />
       <Skeleton variant="card" className="mb-5 h-10" />
       <div className="space-y-2">
@@ -94,7 +94,7 @@ function BrowsePage() {
   const greeting = useMemo(() => getGreeting(t), [t]);
 
   return (
-    <div className="mx-auto max-w-[680px] px-5 py-5 sm:px-6 sm:py-10 lg:max-w-[960px]">
+    <div className="mx-auto max-w-[960px] px-5 py-5 sm:px-6 sm:py-10 lg:max-w-[1200px]">
       {/* Daily Verse */}
       <DailyVerseCard />
 

@@ -290,7 +290,7 @@ function MushafPageView() {
   );
 
   return (
-    <div ref={swipeContainerRef} className="mx-auto max-w-[680px] px-5 py-8 sm:px-6 sm:py-10" style={{ touchAction: "pan-y" }}>
+    <div ref={swipeContainerRef} className="mx-auto max-w-[960px] px-5 py-8 sm:px-6 sm:py-10 lg:max-w-[1200px]" style={{ touchAction: "pan-y" }}>
       {/* Page header, compact horizontal */}
       <div className="relative mb-6 overflow-hidden rounded-2xl bg-[var(--theme-pill-bg)] px-4 py-3.5">
         <div className="relative z-10 flex items-center justify-between gap-3">

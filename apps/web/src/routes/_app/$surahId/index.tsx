@@ -44,7 +44,7 @@ export const Route = createFileRoute("/_app/$surahId/")({
     ]);
   },
   pendingComponent: () => (
-    <div className="mx-auto max-w-[680px] lg:max-w-[960px] px-5 py-5 sm:px-6 sm:py-10">
+    <div className="mx-auto max-w-[960px] lg:max-w-[1200px] px-5 py-5 sm:px-6 sm:py-10">
       <div className="mb-6 text-center">
         <Skeleton className="mx-auto mb-2 h-6 w-32" />
         <Skeleton className="mx-auto h-4 w-24" />
@@ -254,7 +254,7 @@ function SurahView() {
   );
 
   return (
-    <div className="mx-auto max-w-[680px] lg:max-w-[960px] px-4 py-5 sm:px-6 sm:py-10 lg:max-w-[960px]">
+    <div className="mx-auto max-w-[960px] lg:max-w-[1200px] px-4 py-5 sm:px-6 sm:py-10">
       {/* Topic navigation bar (when coming from Fihrist) */}
       {topicParam && resolvedTopic && (
         <TopicNavBar topic={resolvedTopic} topicKey={topicParam} currentSurahId={chapterId} t={t} locale={locale} />

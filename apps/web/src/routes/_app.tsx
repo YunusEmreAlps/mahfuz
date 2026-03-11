@@ -363,7 +363,7 @@ function AppLayout() {
           <button
             type="button"
             onClick={() => setPaletteOpen(true)}
-            className="mx-auto flex w-full max-w-[680px] items-center gap-2.5 rounded-xl bg-[var(--theme-input-bg)] px-3.5 py-2 text-left transition-colors hover:bg-[var(--theme-bg-primary)] hover:shadow-[var(--shadow-elevated)] lg:max-w-[960px]"
+            className="mx-auto flex w-full max-w-[960px] items-center gap-2.5 rounded-xl bg-[var(--theme-input-bg)] px-3.5 py-2 text-left transition-colors hover:bg-[var(--theme-bg-primary)] hover:shadow-[var(--shadow-elevated)] lg:max-w-[1200px]"
           >
             <svg
               className="h-4 w-4 shrink-0 text-[var(--theme-text-tertiary)]"

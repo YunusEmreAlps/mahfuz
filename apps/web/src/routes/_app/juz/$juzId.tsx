@@ -132,7 +132,7 @@ function JuzView() {
   const hasNext = juzNumber < TOTAL_JUZ;
 
   return (
-    <div className="mx-auto max-w-[680px] px-5 py-8 sm:px-6 sm:py-10">
+    <div className="mx-auto max-w-[960px] px-5 py-8 sm:px-6 sm:py-10 lg:max-w-[1200px]">
       {/* Juz header, compact horizontal */}
       <div className="relative mb-6 overflow-hidden rounded-2xl bg-[var(--theme-pill-bg)] px-4 py-3.5">
         <div className="relative z-10 flex items-center justify-between gap-3">
