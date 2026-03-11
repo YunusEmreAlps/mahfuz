@@ -6,6 +6,12 @@ import {
 } from "@mahfuz/shared/constants";
 import type { CuratedReciter } from "@mahfuz/shared/constants";
 import { useTranslation } from "~/hooks/useTranslation";
+import {
+  Dialog,
+  DialogSheet,
+  DialogTitle,
+  DialogClose,
+} from "~/components/ui/Dialog";
 
 interface ReciterModalProps {
   open: boolean;
@@ -34,8 +40,6 @@ export function ReciterModal({ open, onClose, onSelect }: ReciterModalProps) {
     );
   }, [search]);
 
-  if (!open) return null;
-
   const handleSelect = (id: number) => {
     if (onSelect) {
       onSelect(id);
@@ -48,103 +52,100 @@ export function ReciterModal({ open, onClose, onSelect }: ReciterModalProps) {
   const nonFeatured = CURATED_RECITERS.filter((r) => !r.featured);
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-end justify-center sm:items-center">
-      <div
-        className="absolute inset-0 bg-black/30 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <div className="relative z-10 w-full max-w-lg animate-slide-up rounded-t-2xl bg-[var(--theme-bg-primary)] p-5 shadow-modal sm:rounded-2xl">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-[17px] font-semibold text-[var(--theme-text)]">
-            {t.audio.reciterSelection}
-          </h2>
-          <button
-            onClick={onClose}
-            className="rounded-full p-1 text-[var(--theme-text-tertiary)] transition-colors hover:bg-[var(--theme-hover-bg)] hover:text-[var(--theme-text)]"
-            aria-label={t.common.close}
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
+    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
+      <DialogSheet>
+        <div className="relative z-10 w-full max-w-lg animate-slide-up rounded-t-2xl bg-[var(--theme-bg-primary)] p-5 shadow-modal sm:rounded-2xl">
+          <div className="mb-4 flex items-center justify-between">
+            <DialogTitle className="text-[17px] font-semibold text-[var(--theme-text)]">
+              {t.audio.reciterSelection}
+            </DialogTitle>
+            <DialogClose
+              className="rounded-full p-1 text-[var(--theme-text-tertiary)] transition-colors hover:bg-[var(--theme-hover-bg)] hover:text-[var(--theme-text)]"
+              aria-label={t.common.close}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </DialogClose>
+          </div>
 
-        <input
-          type="text"
-          placeholder={t.audio.searchReciter}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="mb-3 w-full rounded-xl border border-[var(--theme-border)] bg-[var(--theme-input-bg)] px-4 py-2.5 text-[14px] text-[var(--theme-text)] outline-none placeholder:text-[var(--theme-text-quaternary)] focus:border-primary-500/40 focus:ring-2 focus:ring-primary-500/20"
-        />
+          <input
+            type="text"
+            placeholder={t.audio.searchReciter}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="mb-3 w-full rounded-xl border border-[var(--theme-border)] bg-[var(--theme-input-bg)] px-4 py-2.5 text-[14px] text-[var(--theme-text)] outline-none placeholder:text-[var(--theme-text-quaternary)] focus:border-primary-500/40 focus:ring-2 focus:ring-primary-500/20"
+          />
 
-        <div className="max-h-[50vh] overflow-y-auto">
-          {filtered ? (
-            // Search results
-            filtered.length > 0 ? (
-              <div className="space-y-0.5">
-                {filtered.map((r) => (
-                  <ReciterRow
-                    key={`${r.id}-${r.style}`}
-                    reciter={r}
-                    isActive={r.id === reciterId}
-                    onSelect={handleSelect}
-                  />
-                ))}
-              </div>
+          <div className="max-h-[50vh] overflow-y-auto">
+            {filtered ? (
+              // Search results
+              filtered.length > 0 ? (
+                <div className="space-y-0.5">
+                  {filtered.map((r) => (
+                    <ReciterRow
+                      key={`${r.id}-${r.style}`}
+                      reciter={r}
+                      isActive={r.id === reciterId}
+                      onSelect={handleSelect}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="py-8 text-center text-[13px] text-[var(--theme-text-tertiary)]">
+                  {t.common.noResults}
+                </p>
+              )
             ) : (
-              <p className="py-8 text-center text-[13px] text-[var(--theme-text-tertiary)]">
-                {t.common.noResults}
-              </p>
-            )
-          ) : (
-            // Default view: Featured + All
-            <>
-              <div className="mb-3">
-                <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--theme-text-tertiary)]">
-                  {t.audio.featured}
-                </p>
-                <div className="space-y-0.5">
-                  {FEATURED_RECITERS.map((r) => (
-                    <ReciterRow
-                      key={`${r.id}-${r.style}`}
-                      reciter={r}
-                      isActive={r.id === reciterId}
-                      isFeatured
-                      onSelect={handleSelect}
-                    />
-                  ))}
+              // Default view: Featured + All
+              <>
+                <div className="mb-3">
+                  <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--theme-text-tertiary)]">
+                    {t.audio.featured}
+                  </p>
+                  <div className="space-y-0.5">
+                    {FEATURED_RECITERS.map((r) => (
+                      <ReciterRow
+                        key={`${r.id}-${r.style}`}
+                        reciter={r}
+                        isActive={r.id === reciterId}
+                        isFeatured
+                        onSelect={handleSelect}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <div>
-                <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--theme-text-tertiary)]">
-                  {t.audio.allReciters}
-                </p>
-                <div className="space-y-0.5">
-                  {nonFeatured.map((r) => (
-                    <ReciterRow
-                      key={`${r.id}-${r.style}`}
-                      reciter={r}
-                      isActive={r.id === reciterId}
-                      onSelect={handleSelect}
-                    />
-                  ))}
+                <div>
+                  <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--theme-text-tertiary)]">
+                    {t.audio.allReciters}
+                  </p>
+                  <div className="space-y-0.5">
+                    {nonFeatured.map((r) => (
+                      <ReciterRow
+                        key={`${r.id}-${r.style}`}
+                        reciter={r}
+                        isActive={r.id === reciterId}
+                        onSelect={handleSelect}
+                      />
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </>
-          )}
+              </>
+            )}
+          </div>
         </div>
-      </div>
-    </div>
+      </DialogSheet>
+    </Dialog>
   );
 }
 

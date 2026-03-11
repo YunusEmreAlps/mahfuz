@@ -9,6 +9,9 @@ import { useAudioStore } from "~/stores/useAudioStore";
 import { usePreferencesStore } from "~/stores/usePreferencesStore";
 import { CommandPalette } from "~/components/CommandPalette";
 import { HeaderSurahPicker } from "~/components/HeaderSurahPicker";
+import { Dialog } from "~/components/ui/Dialog";
+import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/Popover";
+import { TooltipProvider } from "~/components/ui/Tooltip";
 import { SyncIndicator } from "~/components/ui/SyncIndicator";
 import { useTranslation } from "~/hooks/useTranslation";
 import { useSyncStore } from "~/stores/useSyncStore";
@@ -133,6 +136,7 @@ function AppLayout() {
   };
 
   return (
+    <TooltipProvider delayDuration={300}>
     <div className="flex h-screen flex-col bg-[var(--theme-bg)]">
       {/* Header */}
       <header className="glass sticky top-0 z-30 h-[56px] border-b border-[var(--theme-border)] px-3 sm:px-6 lg:h-[64px]">
@@ -158,37 +162,56 @@ function AppLayout() {
                 >
                   <ChevronLeftIcon />
                 </Link>
-                <button
-                  type="button"
-                  onClick={() => setPickerOpen((v) => !v)}
-                  className="flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg px-1 py-0.5 transition-colors hover:bg-[var(--theme-hover-bg)]"
-                >
-                  <span className="text-[12px] font-medium text-[var(--theme-text-tertiary)]">
-                    {chapter.id}
-                  </span>
-                  <span className="inline-grid text-base leading-none">
-                    {allChapters?.map((c) => (
-                      <span
-                        key={c.id}
-                        className={`arabic-text col-start-1 row-start-1 ${c.id === chapter.id ? "text-[var(--theme-text)]" : "invisible"}`}
-                      >
-                        {c.name_arabic}
+                <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className="flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg px-1 py-0.5 transition-colors hover:bg-[var(--theme-hover-bg)]"
+                    >
+                      <span className="text-[12px] font-medium text-[var(--theme-text-tertiary)]">
+                        {chapter.id}
                       </span>
-                    ))}
-                  </span>
-                  <span className="hidden truncate text-[13px] font-medium text-[var(--theme-text-secondary)] sm:inline">
-                    {getSurahName(chapter.id, chapter.translated_name.name, locale)}
-                  </span>
-                  <svg
-                    className={`h-3 w-3 shrink-0 text-[var(--theme-text-tertiary)] transition-transform ${pickerOpen ? "rotate-180" : ""}`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
+                      <span className="inline-grid text-base leading-none">
+                        {allChapters?.map((c) => (
+                          <span
+                            key={c.id}
+                            className={`arabic-text col-start-1 row-start-1 ${c.id === chapter.id ? "text-[var(--theme-text)]" : "invisible"}`}
+                          >
+                            {c.name_arabic}
+                          </span>
+                        ))}
+                      </span>
+                      <span className="hidden truncate text-[13px] font-medium text-[var(--theme-text-secondary)] sm:inline">
+                        {getSurahName(chapter.id, chapter.translated_name.name, locale)}
+                      </span>
+                      <svg
+                        className={`h-3 w-3 shrink-0 text-[var(--theme-text-tertiary)] transition-transform ${pickerOpen ? "rotate-180" : ""}`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                  </PopoverTrigger>
+                  {allChapters && (
+                    <PopoverContent align="start" className="w-80 overflow-hidden p-0">
+                      <HeaderSurahPicker
+                        currentChapterId={chapter.id}
+                        chapters={allChapters}
+                        onSelect={(id) => {
+                          setPickerOpen(false);
+                          router.navigate({
+                            to: "/$surahId",
+                            params: { surahId: String(id) },
+                          });
+                        }}
+                        onClose={() => setPickerOpen(false)}
+                      />
+                    </PopoverContent>
+                  )}
+                </Popover>
                 <Link
                   to="/$surahId"
                   params={{ surahId: String(Math.min(114, chapter.id + 1)) }}
@@ -197,21 +220,6 @@ function AppLayout() {
                 >
                   <ChevronRightIcon />
                 </Link>
-
-                {pickerOpen && allChapters && (
-                  <HeaderSurahPicker
-                    currentChapterId={chapter.id}
-                    chapters={allChapters}
-                    onSelect={(id) => {
-                      setPickerOpen(false);
-                      router.navigate({
-                        to: "/$surahId",
-                        params: { surahId: String(id) },
-                      });
-                    }}
-                    onClose={() => setPickerOpen(false)}
-                  />
-                )}
               </div>
             )}
 
@@ -375,9 +383,11 @@ function AppLayout() {
           </button>
         </div>
       )}
-      {paletteOpen && (
-        <CommandPalette onClose={() => setPaletteOpen(false)} />
-      )}
+      <Dialog open={paletteOpen} onOpenChange={setPaletteOpen}>
+        {paletteOpen && (
+          <CommandPalette onClose={() => setPaletteOpen(false)} />
+        )}
+      </Dialog>
 
       {/* Desktop sidebar + Page content */}
       <div className="flex flex-1 overflow-hidden">
@@ -433,6 +443,7 @@ function AppLayout() {
       <BottomTabBar />
       {!hasSeenOnboarding && <Onboarding />}
     </div>
+    </TooltipProvider>
   );
 }
 

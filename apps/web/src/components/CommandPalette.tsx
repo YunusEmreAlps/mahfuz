@@ -8,6 +8,8 @@ import type { Chapter } from "@mahfuz/shared/types";
 import { useTranslation } from "~/hooks/useTranslation";
 import { QUERY_KEYS } from "~/lib/query-keys";
 import { getSurahName } from "~/lib/surah-name";
+import { Dialog, DialogOverlay, DialogTitle } from "~/components/ui/Dialog";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
 
 // Turkish character normalization for fuzzy matching
 function normalize(s: string): string {
@@ -314,32 +316,23 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
           e.preventDefault();
           if (totalItems > 0) handleSelect(selectedIndex);
           break;
-        case "Escape":
-          e.preventDefault();
-          onClose();
-          break;
       }
     },
-    [totalItems, selectedIndex, handleSelect, onClose],
-  );
-
-  const handleBackdropClick = useCallback(
-    (e: React.MouseEvent) => {
-      if (e.target === e.currentTarget) onClose();
-    },
-    [onClose],
+    [totalItems, selectedIndex, handleSelect],
   );
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/30 backdrop-blur-sm sm:px-6 sm:pt-[12vh]"
-      onClick={handleBackdropClick}
-    >
-      <div
-        className="flex w-full max-h-[100dvh] flex-col overflow-hidden bg-[var(--theme-bg-primary)] sm:max-w-[600px] sm:max-h-[70vh] sm:rounded-2xl sm:shadow-[var(--shadow-modal)] sm:border sm:border-[var(--theme-border)]"
-        onKeyDown={handleKeyDown}
-        onClick={(e) => e.stopPropagation()}
+    <DialogPrimitive.Portal>
+      <DialogOverlay className="sm:px-6 sm:pt-[12vh] flex items-start justify-center" />
+      <DialogPrimitive.Content
+        className="fixed inset-0 z-50 flex items-start justify-center sm:px-6 sm:pt-[12vh]"
+        onPointerDownOutside={() => onClose()}
       >
+        <DialogTitle className="sr-only">{t.commandPalette.placeholder}</DialogTitle>
+        <div
+          className="flex w-full max-h-[100dvh] flex-col overflow-hidden bg-[var(--theme-bg-primary)] sm:max-w-[600px] sm:max-h-[70vh] sm:rounded-2xl sm:shadow-[var(--shadow-modal)] sm:border sm:border-[var(--theme-border)]"
+          onKeyDown={handleKeyDown}
+        >
         {/* Input */}
         <div className="flex items-center gap-3 border-b border-[var(--theme-border)] px-4 py-3">
           <svg
@@ -510,6 +503,7 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
             )}
         </div>
       </div>
-    </div>
+      </DialogPrimitive.Content>
+    </DialogPrimitive.Portal>
   );
 }

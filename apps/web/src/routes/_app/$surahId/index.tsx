@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { Dialog, DialogContent, DialogTitle } from "~/components/ui/Dialog";
+import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/Popover";
 import { chapterQueryOptions, chaptersQueryOptions } from "~/hooks/useChapters";
 import { versesByChapterQueryOptions } from "~/hooks/useVerses";
 import { wbwByChapterQueryOptions } from "~/hooks/useWbwData";
@@ -102,7 +104,6 @@ function SurahView() {
   const queryClient = useQueryClient();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [modeOpen, setModeOpen] = useState(false);
-  const modeRef = useRef<HTMLDivElement>(null);
   const viewMode = usePreferencesStore((s) => s.viewMode);
   const setViewMode = usePreferencesStore((s) => s.setViewMode);
   const { t, locale } = useTranslation();
@@ -307,45 +308,41 @@ function SurahView() {
             </button>
 
             {/* View mode picker */}
-            <div className="relative" ref={modeRef}>
-              <button
-                type="button"
-                onClick={() => setModeOpen((v) => !v)}
-                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-medium transition-all active:scale-[0.97] ${
-                  modeOpen
-                    ? "bg-[var(--theme-text)] text-[var(--theme-bg)]"
-                    : "bg-[var(--theme-hover-bg)] text-[var(--theme-text-secondary)] hover:bg-[var(--theme-pill-bg)]"
-                }`}
-              >
-                {VIEW_MODE_ICONS[viewMode]}
-                {viewModeOptions.find((o) => o.value === viewMode)?.label}
-              </button>
-              {modeOpen && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setModeOpen(false)} />
-                  <div className="absolute left-0 z-50 mt-1.5 w-40 overflow-hidden rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg-elevated)] py-1 shadow-[var(--shadow-float)]">
-                    {viewModeOptions.map((opt) => (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => { setViewMode(opt.value); setModeOpen(false); }}
-                        className={`flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] font-medium transition-colors ${
-                          viewMode === opt.value
-                            ? "bg-primary-600/10 text-primary-600"
-                            : "text-[var(--theme-text-secondary)] hover:bg-[var(--theme-hover-bg)]"
-                        }`}
-                      >
-                        {opt.icon}
-                        {opt.label}
-                        {viewMode === opt.value && (
-                          <svg className="ml-auto h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
+            <Popover open={modeOpen} onOpenChange={setModeOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-medium transition-all active:scale-[0.97] ${
+                    modeOpen
+                      ? "bg-[var(--theme-text)] text-[var(--theme-bg)]"
+                      : "bg-[var(--theme-hover-bg)] text-[var(--theme-text-secondary)] hover:bg-[var(--theme-pill-bg)]"
+                  }`}
+                >
+                  {VIEW_MODE_ICONS[viewMode]}
+                  {viewModeOptions.find((o) => o.value === viewMode)?.label}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-40 overflow-hidden rounded-xl py-1">
+                {viewModeOptions.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => { setViewMode(opt.value); setModeOpen(false); }}
+                    className={`flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] font-medium transition-colors ${
+                      viewMode === opt.value
+                        ? "bg-primary-600/10 text-primary-600"
+                        : "text-[var(--theme-text-secondary)] hover:bg-[var(--theme-hover-bg)]"
+                    }`}
+                  >
+                    {opt.icon}
+                    {opt.label}
+                    {viewMode === opt.value && (
+                      <svg className="ml-auto h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                    )}
+                  </button>
+                ))}
+              </PopoverContent>
+            </Popover>
 
             <Link
               to="/$surahId/$verseNum"
@@ -469,19 +466,21 @@ function SurahView() {
       </div>
 
       {/* Surah picker overlay */}
-      {pickerOpen && (
-        <SurahPicker
-          currentChapterId={chapterId}
-          chapters={chapters}
-          t={t}
-          locale={locale}
-          onSelect={(id) => {
-            setPickerOpen(false);
-            navigate({ to: "/$surahId", params: { surahId: String(id) } });
-          }}
-          onClose={() => setPickerOpen(false)}
-        />
-      )}
+      <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
+        <DialogContent>
+          <SurahPicker
+            currentChapterId={chapterId}
+            chapters={chapters}
+            t={t}
+            locale={locale}
+            onSelect={(id) => {
+              setPickerOpen(false);
+              navigate({ to: "/$surahId", params: { surahId: String(id) } });
+            }}
+            onClose={() => setPickerOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -532,91 +531,79 @@ function SurahPicker({
     }
   }, [search]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
-
   return (
-    <div
-      className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      <div className="mx-auto mt-10 flex w-[92%] max-w-[520px] animate-scale-in flex-col overflow-hidden rounded-2xl bg-[var(--theme-bg-primary)] shadow-[var(--shadow-modal)] sm:mt-14">
-        {/* Search header */}
-        <div className="flex items-center gap-3 border-b border-[var(--theme-border)] px-4 py-3">
-          <svg className="h-4 w-4 shrink-0 text-[var(--theme-text-tertiary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
-          </svg>
-          <input
-            ref={inputRef}
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={t.surahPicker.placeholder}
-            className="flex-1 bg-transparent text-[15px] text-[var(--theme-text)] placeholder-[var(--theme-text-tertiary)] outline-none"
-          />
-          <button
-            onClick={onClose}
-            className="text-[13px] font-medium text-primary-600"
-          >
-            {t.common.close}
-          </button>
-        </div>
+    <div className="mx-auto flex w-[92%] max-w-[520px] animate-scale-in flex-col overflow-hidden rounded-2xl bg-[var(--theme-bg-primary)] shadow-[var(--shadow-modal)]">
+      <DialogTitle className="sr-only">{t.surahPicker.placeholder}</DialogTitle>
+      {/* Search header */}
+      <div className="flex items-center gap-3 border-b border-[var(--theme-border)] px-4 py-3">
+        <svg className="h-4 w-4 shrink-0 text-[var(--theme-text-tertiary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+        </svg>
+        <input
+          ref={inputRef}
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder={t.surahPicker.placeholder}
+          className="flex-1 bg-transparent text-[15px] text-[var(--theme-text)] placeholder-[var(--theme-text-tertiary)] outline-none"
+        />
+        <button
+          onClick={onClose}
+          className="text-[13px] font-medium text-primary-600"
+        >
+          {t.common.close}
+        </button>
+      </div>
 
-        {/* Surah list */}
-        <div className="max-h-[60vh] overflow-y-auto">
-          {filtered.map((ch) => {
-            const isCurrent = ch.id === currentChapterId;
-            return (
-              <button
-                key={ch.id}
-                ref={isCurrent ? currentRef : undefined}
-                type="button"
-                onClick={() => onSelect(ch.id)}
-                className={`flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors ${
-                  isCurrent
-                    ? "bg-primary-600/10"
-                    : "hover:bg-[var(--theme-hover-bg)]"
-                }`}
-              >
-                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[12px] font-semibold tabular-nums ${
-                  isCurrent
-                    ? "bg-primary-600 text-white"
-                    : "bg-[var(--theme-hover-bg)] text-[var(--theme-text-secondary)]"
-                }`}>
-                  {ch.id}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[13px] font-medium text-[var(--theme-text)]">
-                      {getSurahName(ch.id, ch.translated_name.name, locale)}
-                    </span>
-                    <span className="text-[11px] text-[var(--theme-text-quaternary)]">
-                      {ch.name_simple}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[11px] text-[var(--theme-text-tertiary)]">
-                    <span>{ch.verses_count} {t.quranReader.versesUnit}</span>
-                    <span>·</span>
-                    <span>{t.common.page} {ch.pages[0]}–{ch.pages[1]}</span>
-                  </div>
+      {/* Surah list */}
+      <div className="max-h-[60vh] overflow-y-auto">
+        {filtered.map((ch) => {
+          const isCurrent = ch.id === currentChapterId;
+          return (
+            <button
+              key={ch.id}
+              ref={isCurrent ? currentRef : undefined}
+              type="button"
+              onClick={() => onSelect(ch.id)}
+              className={`flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors ${
+                isCurrent
+                  ? "bg-primary-600/10"
+                  : "hover:bg-[var(--theme-hover-bg)]"
+              }`}
+            >
+              <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[12px] font-semibold tabular-nums ${
+                isCurrent
+                  ? "bg-primary-600 text-white"
+                  : "bg-[var(--theme-hover-bg)] text-[var(--theme-text-secondary)]"
+              }`}>
+                {ch.id}
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[13px] font-medium text-[var(--theme-text)]">
+                    {getSurahName(ch.id, ch.translated_name.name, locale)}
+                  </span>
+                  <span className="text-[11px] text-[var(--theme-text-quaternary)]">
+                    {ch.name_simple}
+                  </span>
                 </div>
-                <span className="arabic-text shrink-0 text-base text-[var(--theme-text-secondary)]" dir="rtl">
-                  {ch.name_arabic}
-                </span>
-              </button>
-            );
-          })}
-          {filtered.length === 0 && (
-            <p className="px-4 py-6 text-center text-[13px] text-[var(--theme-text-tertiary)]">
-              {t.common.noResults}
-            </p>
-          )}
-        </div>
+                <div className="flex items-center gap-1.5 text-[11px] text-[var(--theme-text-tertiary)]">
+                  <span>{ch.verses_count} {t.quranReader.versesUnit}</span>
+                  <span>·</span>
+                  <span>{t.common.page} {ch.pages[0]}–{ch.pages[1]}</span>
+                </div>
+              </div>
+              <span className="arabic-text shrink-0 text-base text-[var(--theme-text-secondary)]" dir="rtl">
+                {ch.name_arabic}
+              </span>
+            </button>
+          );
+        })}
+        {filtered.length === 0 && (
+          <p className="px-4 py-6 text-center text-[13px] text-[var(--theme-text-tertiary)]">
+            {t.common.noResults}
+          </p>
+        )}
       </div>
     </div>
   );

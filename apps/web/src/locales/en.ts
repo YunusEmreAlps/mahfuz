@@ -336,6 +336,9 @@ export const en = {
     uthmani: "Uthmani",
     simple: "Simple",
     changeReciter: "Change",
+    back: "Back",
+    colorTitle: "Word Colors",
+    colorSubtitle: "Colorize words to make reading easier",
   },
 
   // Translation Picker

@@ -6,6 +6,7 @@ import { ProgressLine } from "./ProgressLine";
 import { ReciterModal } from "./ReciterModal";
 import { chapterAudioQueryOptions } from "~/hooks/useAudio";
 import { useTranslation } from "~/hooks/useTranslation";
+import { Dialog, DialogSheet, DialogTitle, DialogClose } from "~/components/ui/Dialog";
 import type { PlaybackSpeed, RepeatMode } from "@mahfuz/shared/types";
 import type { ChapterAudioData } from "@mahfuz/audio-engine";
 
@@ -102,28 +103,23 @@ export function AudioBar() {
   return (
     <>
       {/* Expanded overlay */}
-      {isExpanded && (
-        <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center">
-          <div
-            className="absolute inset-0 bg-black/25 backdrop-blur-sm"
-            onClick={() => setExpanded(false)}
-          />
+      <Dialog open={isExpanded} onOpenChange={(v) => { if (!v) setExpanded(false); }}>
+        <DialogSheet>
           <div className="relative z-10 w-full max-w-md animate-slide-up rounded-t-2xl bg-[var(--theme-bg-primary)] p-6 shadow-modal sm:rounded-2xl">
             {/* Header */}
             <div className="mb-5 flex items-center justify-between">
               <div>
-                <p className="text-[15px] font-semibold text-[var(--theme-text)]">
+                <DialogTitle className="text-[15px] font-semibold text-[var(--theme-text)]">
                   {chapterName}
-                </p>
+                </DialogTitle>
                 <p className="text-[12px] text-[var(--theme-text-tertiary)]">{verseLabel}</p>
               </div>
-              <button
-                onClick={() => setExpanded(false)}
+              <DialogClose
                 className="rounded-full p-1 text-[var(--theme-text-tertiary)] hover:bg-[var(--theme-hover-bg)] hover:text-[var(--theme-text)]"
                 aria-label={t.audio.collapse}
               >
                 <ChevronDownIcon />
-              </button>
+              </DialogClose>
             </div>
 
             {/* Seek bar */}
@@ -242,8 +238,8 @@ export function AudioBar() {
               {t.audio.stop}
             </button>
           </div>
-        </div>
-      )}
+        </DialogSheet>
+      </Dialog>
 
       {/* Collapsed bar */}
       <div className="audio-bar-in fixed bottom-[calc(60px+env(safe-area-inset-bottom,0px))] left-0 right-0 z-20 bg-[var(--theme-bg-primary)] shadow-sm lg:static lg:z-10 lg:shadow-none">

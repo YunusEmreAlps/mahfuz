@@ -3,13 +3,18 @@ import {
   usePreferencesStore,
   ARABIC_FONTS,
   getArabicFont,
+  getActiveColors,
+  COLOR_PALETTES,
 } from "~/stores/usePreferencesStore";
-import type { Theme } from "~/stores/usePreferencesStore";
+import type { Theme, ColorPaletteId } from "~/stores/usePreferencesStore";
 import { useTranslation } from "~/hooks/useTranslation";
 import { useI18nStore } from "~/stores/useI18nStore";
 import { useAudioStore } from "~/stores/useAudioStore";
 import { CURATED_RECITERS } from "@mahfuz/shared/constants";
 import { ReciterModal } from "~/components/audio/ReciterModal";
+import { Dialog, DialogContent, DialogTitle } from "~/components/ui/Dialog";
+
+const TOTAL_STEPS = 4;
 
 const THEMES: { value: Theme; color: string; border: string }[] = [
   { value: "light", color: "#ffffff", border: "#d2d2d7" },
@@ -31,6 +36,8 @@ const ONBOARDING_FONTS = ONBOARDING_FONT_IDS.map(
   (id) => ARABIC_FONTS.find((f) => f.id === id)!,
 );
 
+const BISMILLAH_WORDS = ["بِسْمِ", "ٱللَّهِ", "ٱلرَّحْمَٰنِ", "ٱلرَّحِيمِ"];
+
 export function Onboarding() {
   const [step, setStep] = useState(0);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -45,6 +52,10 @@ export function Onboarding() {
   const setArabicFont = usePreferencesStore((s) => s.setArabicFont);
   const textType = usePreferencesStore((s) => s.textType);
   const setTextType = usePreferencesStore((s) => s.setTextType);
+  const colorizeWords = usePreferencesStore((s) => s.colorizeWords);
+  const setColorizeWords = usePreferencesStore((s) => s.setColorizeWords);
+  const colorPaletteId = usePreferencesStore((s) => s.colorPaletteId);
+  const setColorPalette = usePreferencesStore((s) => s.setColorPalette);
 
   const reciterId = useAudioStore((s) => s.reciterId);
 
@@ -53,21 +64,24 @@ export function Onboarding() {
 
   const currentFont = getArabicFont(arabicFontId);
   const currentReciter = CURATED_RECITERS.find((r) => r.id === reciterId);
+  const colors = getActiveColors({ colorPaletteId });
 
   const finish = () => setHasSeenOnboarding(true);
 
   const features = [
-    { icon: "📖", label: t.onboarding.feature_read },
-    { icon: "🎧", label: t.onboarding.feature_listen },
-    { icon: "🎓", label: t.onboarding.feature_learn },
-    { icon: "🧠", label: t.onboarding.feature_memorize },
+    { icon: "\u{1F4D6}", label: t.onboarding.feature_read },
+    { icon: "\u{1F3A7}", label: t.onboarding.feature_listen },
+    { icon: "\u{1F393}", label: t.onboarding.feature_learn },
+    { icon: "\u{1F9E0}", label: t.onboarding.feature_memorize },
   ];
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="relative mx-4 w-full max-w-md overflow-hidden rounded-2xl bg-[var(--theme-bg-elevated)] shadow-[var(--shadow-modal)]">
+    <Dialog open>
+      <DialogContent preventOverlayClose className="z-[100]">
+        <div className="relative mx-4 w-full max-w-md overflow-hidden rounded-2xl bg-[var(--theme-bg-elevated)] shadow-[var(--shadow-modal)]">
+          <DialogTitle style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0,0,0,0)", whiteSpace: "nowrap", border: 0 }}>{t.onboarding.welcomeTitle}</DialogTitle>
         {/* Skip */}
-        {step < 2 && (
+        {step < TOTAL_STEPS - 1 && (
           <button
             onClick={finish}
             className="absolute right-4 top-4 z-10 text-[12px] font-medium text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-secondary)]"
@@ -163,7 +177,7 @@ export function Onboarding() {
                   onClick={() => setLocale("tr")}
                   className={`flex-1 rounded-lg py-2 text-[13px] font-medium transition-all ${locale === "tr" ? "bg-primary-600 text-white" : "text-[var(--theme-text-secondary)]"}`}
                 >
-                  Türkçe
+                  {"Türkçe"}
                 </button>
                 <button
                   onClick={() => setLocale("en")}
@@ -216,7 +230,7 @@ export function Onboarding() {
                             className="block text-[16px] leading-relaxed text-[var(--theme-text)]"
                             style={{ fontFamily: font.family }}
                           >
-                            بِسْمِ ٱللَّهِ
+                            {"بِسْمِ ٱللَّهِ"}
                           </span>
                           <span className="mt-1 block text-[9px] text-[var(--theme-text-tertiary)]">
                             {font.name}
@@ -274,18 +288,84 @@ export function Onboarding() {
                   className="arabic-text mt-4 rounded-xl bg-[var(--theme-pill-bg)] px-4 py-3 text-[22px] leading-[2] text-[var(--theme-text)]"
                   style={{ fontFamily: currentFont.family }}
                 >
-                  بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
+                  {textType === "uthmani"
+                    ? "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ"
+                    : "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ"}
                 </p>
               )}
             </div>
 
-            {/* Step 3: Ready */}
+            {/* Step 3: Word Colors */}
+            <div className="w-full shrink-0 p-8 text-center">
+              <h2 className="mb-2 text-[20px] font-semibold text-[var(--theme-text)]">
+                {t.onboarding.colorTitle}
+              </h2>
+              <p className="mb-6 text-[14px] text-[var(--theme-text-secondary)]">
+                {t.onboarding.colorSubtitle}
+              </p>
+
+              {/* Toggle */}
+              <div className="mb-5 flex items-center justify-between rounded-xl bg-[var(--theme-pill-bg)] px-4 py-3">
+                <span className="text-[13px] font-medium text-[var(--theme-text)]">
+                  {t.theme.colorizeWords}
+                </span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={colorizeWords}
+                  onClick={() => setColorizeWords(!colorizeWords)}
+                  className={`relative h-[26px] w-[44px] shrink-0 rounded-full transition-colors ${colorizeWords ? "bg-primary-600" : "bg-[var(--theme-divider)]"}`}
+                >
+                  <span className={`absolute top-[2px] left-[2px] h-[22px] w-[22px] rounded-full bg-white shadow-sm transition-transform ${colorizeWords ? "translate-x-[18px]" : "translate-x-0"}`} />
+                </button>
+              </div>
+
+              {/* Palette grid */}
+              {colorizeWords && (
+                <div className="mb-5 flex items-center justify-center gap-3">
+                  {COLOR_PALETTES.map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => setColorPalette(p.id as ColorPaletteId)}
+                      className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all ${colorPaletteId === p.id ? "border-primary-600 ring-2 ring-primary-600/30" : "border-[var(--theme-divider)]"}`}
+                      aria-label={p.name}
+                      title={p.name}
+                    >
+                      <svg width="20" height="20" viewBox="0 0 18 18">
+                        <rect x="1" y="1" width="7" height="7" rx="1.5" fill={p.colors[0]} />
+                        <rect x="10" y="1" width="7" height="7" rx="1.5" fill={p.colors[1]} />
+                        <rect x="1" y="10" width="7" height="7" rx="1.5" fill={p.colors[2]} />
+                        <rect x="10" y="10" width="7" height="7" rx="1.5" fill={p.colors[3]} />
+                      </svg>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Bismillah color preview */}
+              <p
+                dir="rtl"
+                className="arabic-text rounded-xl bg-[var(--theme-pill-bg)] px-4 py-4 text-[24px] leading-[2] text-[var(--theme-text)]"
+                style={{ fontFamily: currentFont.family }}
+              >
+                {BISMILLAH_WORDS.map((word, i) => (
+                  <span key={i}>
+                    {i > 0 && " "}
+                    <span style={colorizeWords ? { color: colors[i % colors.length] } : undefined}>
+                      {word}
+                    </span>
+                  </span>
+                ))}
+              </p>
+            </div>
+
+            {/* Step 4: Ready */}
             <div className="w-full shrink-0 p-8 text-center">
               <p
                 dir="rtl"
                 className="arabic-text mb-4 text-[28px] leading-[2] text-[var(--theme-text)]"
               >
-                بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
+                {"بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ"}
               </p>
               <h2 className="mb-2 text-[20px] font-semibold text-[var(--theme-text)]">
                 {t.onboarding.readyTitle}
@@ -303,32 +383,57 @@ export function Onboarding() {
           </div>
         </div>
 
-        {/* Dots + Next */}
+        {/* Footer: Back + Dots/Counter + Next */}
         <div className="flex items-center justify-between border-t border-[var(--theme-border)] px-6 py-4">
-          <div className="flex gap-1.5">
-            {[0, 1, 2].map((i) => (
-              <span
-                key={i}
-                className={`h-1.5 rounded-full transition-all ${step === i ? "w-4 bg-primary-600" : "w-1.5 bg-[var(--theme-divider)]"}`}
-              />
-            ))}
+          {/* Back button */}
+          {step > 0 ? (
+            <button
+              onClick={() => setStep((s) => s - 1)}
+              className="rounded-lg px-4 py-1.5 text-[13px] font-medium text-[var(--theme-text-secondary)] transition-colors hover:text-[var(--theme-text)]"
+            >
+              {t.onboarding.back}
+            </button>
+          ) : (
+            <span className="w-[60px]" />
+          )}
+
+          {/* Dots + Step counter */}
+          <div className="flex flex-col items-center gap-1.5">
+            <div className="flex gap-1.5">
+              {Array.from({ length: TOTAL_STEPS }, (_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setStep(i)}
+                  className={`h-1.5 rounded-full transition-all ${step === i ? "w-4 bg-primary-600" : "w-1.5 bg-[var(--theme-divider)] hover:bg-[var(--theme-text-tertiary)]"}`}
+                  aria-label={`${i + 1} / ${TOTAL_STEPS}`}
+                />
+              ))}
+            </div>
+            <span className="text-[10px] text-[var(--theme-text-tertiary)]">
+              {step + 1} / {TOTAL_STEPS}
+            </span>
           </div>
-          {step < 2 && (
+
+          {/* Next button */}
+          {step < TOTAL_STEPS - 1 ? (
             <button
               onClick={() => setStep((s) => s + 1)}
               className="rounded-lg bg-primary-600 px-4 py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-primary-700"
             >
               {t.onboarding.next}
             </button>
+          ) : (
+            <span className="w-[60px]" />
           )}
         </div>
       </div>
 
-      {/* Reciter Modal */}
-      <ReciterModal
-        open={reciterModalOpen}
-        onClose={() => setReciterModalOpen(false)}
-      />
-    </div>
+        {/* Reciter Modal */}
+        <ReciterModal
+          open={reciterModalOpen}
+          onClose={() => setReciterModalOpen(false)}
+        />
+      </DialogContent>
+    </Dialog>
   );
 }

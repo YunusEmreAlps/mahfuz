@@ -336,6 +336,9 @@ export const tr = {
     uthmani: "Osmânî",
     simple: "Basit",
     changeReciter: "Değiştir",
+    back: "Geri",
+    colorTitle: "Yazı Rengi",
+    colorSubtitle: "Kelimeleri renkli göstererek okumayı kolaylaştırın",
   },
 
   // Translation Picker

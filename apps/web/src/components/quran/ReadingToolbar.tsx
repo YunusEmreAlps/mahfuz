@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { usePreferencesStore, getTranslationFontSizeForMode, getArabicFontSizeForMode, getActiveColors, COLOR_PALETTES } from "~/stores/usePreferencesStore";
 import type { ViewMode, Theme, ColorPaletteId } from "~/stores/usePreferencesStore";
@@ -9,6 +9,8 @@ import { useTranslatedVerses } from "~/hooks/useTranslatedVerses";
 import { useAudioStore } from "~/stores/useAudioStore";
 import { TranslationPicker } from "./TranslationPicker";
 import { useTranslation } from "~/hooks/useTranslation";
+import { Popover, PopoverTrigger } from "~/components/ui/Popover";
+import * as PopoverPrimitive from "@radix-ui/react-popover";
 
 /* ─ Shared helpers ─ */
 
@@ -191,7 +193,6 @@ const THEMES: { value: Theme; color: string; border: string }[] = [
 
 export function ReadingToolbar({ segmentStyle }: { segmentStyle?: boolean } = {}) {
   const [open, setOpen] = useState(false);
-  const popoverRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const { t } = useTranslation();
 
@@ -243,27 +244,6 @@ export function ReadingToolbar({ segmentStyle }: { segmentStyle?: boolean } = {}
 
   const modeOptions = getModeOptions(t);
 
-  const handleClickOutside = useCallback((e: MouseEvent) => {
-    if (popoverRef.current && !popoverRef.current.contains(e.target as Node) && buttonRef.current && !buttonRef.current.contains(e.target as Node)) {
-      setOpen(false);
-    }
-  }, []);
-
-  const handleEscape = useCallback((e: KeyboardEvent) => {
-    if (e.key === "Escape") setOpen(false);
-  }, []);
-
-  useEffect(() => {
-    if (open) {
-      document.addEventListener("mousedown", handleClickOutside);
-      document.addEventListener("keydown", handleEscape);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [open, handleClickOutside, handleEscape]);
-
   // Quick font size adjust
   const bump = (delta: number) => {
     const next = Math.max(0.6, Math.min(2.0, arabicSize + delta));
@@ -277,26 +257,30 @@ export function ReadingToolbar({ segmentStyle }: { segmentStyle?: boolean } = {}
   };
 
   return (
-    <div className="relative">
-      <button ref={buttonRef} onClick={() => setOpen((v) => !v)}
-        className={`flex items-center gap-1 font-medium transition-colors ${
-          segmentStyle
-            ? `relative z-[1] justify-center rounded-lg px-2.5 py-1.5 text-[12px] sm:px-3.5 ${open ? "text-[var(--theme-text)]" : "text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-secondary)]"}`
-            : `h-8 rounded-full px-3 text-[13px] ${open ? "bg-primary-600 text-white" : "bg-[var(--theme-pill-bg)] text-[var(--theme-text)] hover:bg-[var(--theme-hover-bg)]"}`
-        }`}
-        aria-label={t.reading.settings} aria-expanded={open}
-      >
-        <span className="text-[14px] font-semibold">A</span>
-        <span className="arabic-text text-[14px] font-semibold leading-none">ع</span>
-      </button>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button ref={buttonRef}
+          className={`flex items-center gap-1 font-medium transition-colors ${
+            segmentStyle
+              ? `relative z-[1] justify-center rounded-lg px-2.5 py-1.5 text-[12px] sm:px-3.5 ${open ? "text-[var(--theme-text)]" : "text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-secondary)]"}`
+              : `h-8 rounded-full px-3 text-[13px] ${open ? "bg-primary-600 text-white" : "bg-[var(--theme-pill-bg)] text-[var(--theme-text)] hover:bg-[var(--theme-hover-bg)]"}`
+          }`}
+          aria-label={t.reading.settings}
+        >
+          <span className="text-[14px] font-semibold">A</span>
+          <span className="arabic-text text-[14px] font-semibold leading-none">ع</span>
+        </button>
+      </PopoverTrigger>
 
-      {open && (
-        <>
-          <div className="fixed inset-0 z-40 bg-black/30 sm:hidden" onClick={() => setOpen(false)} />
-          <div ref={popoverRef}
-            className={`fixed inset-x-0 z-50 max-h-[92vh] overflow-y-auto overscroll-contain rounded-t-2xl border-t border-[var(--theme-border)] bg-[var(--theme-bg-elevated)] p-5 pb-20 shadow-[var(--shadow-float)] sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 sm:w-[26rem] sm:max-h-[70vh] sm:rounded-2xl sm:border sm:p-4 sm:pb-4 sm:animate-toolbar-in ${audioVisible ? "bottom-16" : "bottom-0"}`}
-            style={{ backdropFilter: "saturate(180%) blur(20px)" }}
-          >
+      <PopoverPrimitive.Portal>
+        <PopoverPrimitive.Content
+          side="bottom"
+          align="end"
+          sideOffset={8}
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          className={`z-50 fixed inset-x-0 max-h-[92vh] overflow-y-auto overscroll-contain rounded-t-2xl border-t border-[var(--theme-border)] bg-[var(--theme-bg-elevated)] p-5 pb-20 shadow-[var(--shadow-float)] sm:relative sm:inset-auto sm:w-[26rem] sm:max-h-[70vh] sm:rounded-2xl sm:border sm:p-4 sm:pb-4 sm:animate-toolbar-in ${audioVisible ? "bottom-16" : "bottom-0"}`}
+          style={{ backdropFilter: "saturate(180%) blur(20px)" }}
+        >
             {/* Mobile header */}
             <div className="mb-3 flex items-center justify-between sm:hidden">
               <span className="text-[14px] font-semibold text-[var(--theme-text)]">{t.reading.settingsTitle}</span>
@@ -451,9 +435,8 @@ export function ReadingToolbar({ segmentStyle }: { segmentStyle?: boolean } = {}
                 )}
               </CategorySection>
             </div>
-          </div>
-        </>
-      )}
-    </div>
+        </PopoverPrimitive.Content>
+      </PopoverPrimitive.Portal>
+    </Popover>
   );
 }

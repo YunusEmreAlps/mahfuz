@@ -58,7 +58,7 @@ const THEME_OPTIONS: { value: Theme; color: string }[] = [
 ];
 
 type ReadingModeTab = "normal" | "wordByWord" | "mushaf";
-type AccordionSection = "font" | "wordColor" | "script" | "reciter" | "theme" | "readingMode" | "langNav";
+type AccordionSection = "font" | "wordColor" | "reciter" | "theme" | "readingMode" | "langNav";
 
 // ─── Icons (18×18 stroke) ───────────────────────────────────────────
 function IconFont() {
@@ -73,14 +73,6 @@ function IconDroplet() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M9 2.5C9 2.5 4 8 4 11a5 5 0 0010 0c0-3-5-8.5-5-8.5z" />
-    </svg>
-  );
-}
-function IconPen() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M13.5 2.5l2 2-10 10H3.5v-2l10-10z" />
-      <path d="M11.5 4.5l2 2" />
     </svg>
   );
 }
@@ -122,35 +114,6 @@ function IconGlobe() {
   );
 }
 
-// ─── ControlPanelCard ──────────────────────────────────────────────
-function ControlPanelCard({
-  title,
-  summary,
-  icon,
-  onClick,
-}: {
-  title: string;
-  summary: string;
-  icon: React.ReactNode;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex flex-col items-center gap-3 rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-bg-primary)] px-4 py-5 text-center transition-all hover:scale-[1.02] hover:shadow-md hover:border-[var(--theme-divider)] active:scale-[0.98]"
-    >
-      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-600/10 text-primary-700">
-        {icon}
-      </span>
-      <div className="min-w-0 w-full">
-        <span className="block text-[13px] font-semibold text-[var(--theme-text)]">{title}</span>
-        <span className="block truncate text-[11px] text-[var(--theme-text-tertiary)] mt-0.5">{summary}</span>
-      </div>
-    </button>
-  );
-}
-
 // ─── SaveStatusBar ──────────────────────────────────────────────────
 function SaveStatusBar({ visible }: { visible: boolean }) {
   const { t } = useTranslation();
@@ -165,8 +128,16 @@ function SaveStatusBar({ visible }: { visible: boolean }) {
   );
 }
 
+// ─── Hydration guard ─────────────────────────────────────────────────
+function useHydrated() {
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
+  return hydrated;
+}
+
 // ─── Main Page ──────────────────────────────────────────────────────
 function SettingsPage() {
+  const hydrated = useHydrated();
   const { t } = useTranslation();
   const { locale, setLocale } = useI18nStore();
 
@@ -261,7 +232,6 @@ function SettingsPage() {
   const wordColorSummary = colorizeWords
     ? COLOR_PALETTES.find((p) => p.id === colorPaletteId)?.name ?? ""
     : t.settings.colorOff;
-  const scriptSummary = textType === "uthmani" ? t.settings.textTypeUthmani : t.settings.textTypeSimple;
   const reciterSummary = currentReciter?.name ?? "—";
   const themeSummary = themeLabels[theme];
   const readingModeSummary = t.settings.viewModes[viewMode];
@@ -271,7 +241,6 @@ function SettingsPage() {
   const sections: { id: AccordionSection; title: string; summary: string; icon: React.ReactNode }[] = [
     { id: "font", title: t.settings.sectionFont, summary: fontSummary, icon: <IconFont /> },
     { id: "wordColor", title: t.settings.sectionWordColor, summary: wordColorSummary, icon: <IconDroplet /> },
-    { id: "script", title: t.settings.sectionScript, summary: scriptSummary, icon: <IconPen /> },
     { id: "reciter", title: t.settings.sectionReciter, summary: reciterSummary, icon: <IconMicrophone /> },
     { id: "theme", title: t.settings.sectionTheme, summary: themeSummary, icon: <IconPalette /> },
     { id: "readingMode", title: t.settings.sectionReadingMode, summary: readingModeSummary, icon: <IconBook /> },
@@ -283,13 +252,27 @@ function SettingsPage() {
     switch (section) {
       case "font":
         return (
-          <FontPickerSection
-            arabicFontId={arabicFontId}
-            onFontChange={setArabicFont}
-            colorizeWords={colorizeWords}
-            colors={activeColors}
-            textType={textType}
-          />
+          <>
+            <h3 className="mb-3 text-[13px] font-semibold text-[var(--theme-text)]">{t.settings.textType}</h3>
+            <SegmentedControl
+              options={[
+                { value: "uthmani" as const, label: t.settings.textTypeUthmani },
+                { value: "simple" as const, label: t.settings.textTypeSimple },
+              ]}
+              value={textType}
+              onChange={setTextType}
+              stretch
+            />
+            <div className="mt-5">
+              <FontPickerSection
+                arabicFontId={arabicFontId}
+                onFontChange={setArabicFont}
+                colorizeWords={colorizeWords}
+                colors={activeColors}
+                textType={textType}
+              />
+            </div>
+          </>
         );
       case "wordColor":
         return (
@@ -334,20 +317,12 @@ function SettingsPage() {
                 </div>
               </div>
             )}
-          </>
-        );
-      case "script":
-        return (
-          <>
-            <h3 className="mb-3 text-[13px] font-semibold text-[var(--theme-text)]">{t.settings.textType}</h3>
-            <SegmentedControl
-              options={[
-                { value: "uthmani" as const, label: t.settings.textTypeUthmani },
-                { value: "simple" as const, label: t.settings.textTypeSimple },
-              ]}
-              value={textType}
-              onChange={setTextType}
-              stretch
+            {/* Preview */}
+            <WordColorPreview
+              colorizeWords={colorizeWords}
+              colors={activeColors}
+              fontFamily={currentFont.family}
+              textType={textType}
             />
           </>
         );
@@ -500,67 +475,85 @@ function SettingsPage() {
     }
   }
 
-  // ── Active section title for detail header ──
-  const activeSectionData = activeSection ? sections.find((s) => s.id === activeSection) : null;
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  if (!hydrated) {
+    return (
+      <div className="mx-auto max-w-3xl px-6 py-8">
+        <div className="h-8 w-48 animate-pulse rounded-lg bg-[var(--theme-border)]" />
+        <div className="mt-2 h-4 w-64 animate-pulse rounded bg-[var(--theme-border)]" />
+        <div className="mt-6 flex gap-2 overflow-hidden">
+          {Array.from({ length: 7 }).map((_, i) => (
+            <div key={i} className="h-16 w-20 shrink-0 animate-pulse rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg-primary)]" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-8">
-      {activeSection === null ? (
-        <>
-          {/* ═══ GRID VIEW ═══ */}
-          <h1 className="mb-1 text-2xl font-bold tracking-tight text-[var(--theme-text)]">
-            {t.settings.controlPanel}
-          </h1>
-          <p className="mb-6 text-sm text-[var(--theme-text-tertiary)]">
-            {t.settings.subtitle}
-          </p>
+      {/* Header */}
+      <h1 className="mb-1 text-2xl font-bold tracking-tight text-[var(--theme-text)]">
+        {t.settings.controlPanel}
+      </h1>
+      <p className="mb-5 text-sm text-[var(--theme-text-tertiary)]">
+        {t.settings.subtitle}
+      </p>
 
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {sections.map((s) => (
-              <ControlPanelCard
-                key={s.id}
-                title={s.title}
-                summary={s.summary}
-                icon={s.icon}
-                onClick={() => setActiveSection(s.id)}
-              />
-            ))}
-          </div>
-
-          {/* Show onboarding again */}
-          <div className="mt-6">
+      {/* ═══ RIBBON BAR ═══ */}
+      <div className="scrollbar-none grid grid-cols-6 gap-1.5">
+        {sections.map((s) => {
+          const active = activeSection === s.id;
+          return (
             <button
-              onClick={() => {
-                usePreferencesStore.getState().setHasSeenOnboarding(false);
-                window.location.href = "/browse/surahs";
-              }}
-              className="w-full rounded-xl bg-[var(--theme-pill-bg)] px-4 py-3 text-[13px] font-medium text-[var(--theme-text-secondary)] transition-colors hover:bg-[var(--theme-hover-bg)]"
-            >
-              {t.onboarding.showAgain}
-            </button>
-          </div>
-        </>
-      ) : (
-        <>
-          {/* ═══ DETAIL VIEW ═══ */}
-          <div className="animate-page-enter">
-            <button
+              key={s.id}
               type="button"
-              onClick={() => setActiveSection(null)}
-              className="mb-6 flex items-center gap-2 text-[14px] font-medium text-primary-600 transition-colors hover:text-primary-700"
+              onClick={() => {
+                setActiveSection(active ? null : s.id);
+                if (!active) {
+                  requestAnimationFrame(() =>
+                    contentRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }),
+                  );
+                }
+              }}
+              className={`group flex h-16 flex-col items-center justify-center gap-1.5 rounded-xl transition-all ${
+                active
+                  ? "bg-primary-600 text-white shadow-sm"
+                  : "bg-[var(--theme-bg-primary)] text-[var(--theme-text-secondary)] hover:bg-[var(--theme-hover-bg)]"
+              }`}
             >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M10 12L6 8l4-4" />
-              </svg>
-              {activeSectionData?.title}
+              <span className={active ? "text-white" : "text-[var(--theme-text-tertiary)] group-hover:text-[var(--theme-text-secondary)]"}>
+                {s.icon}
+              </span>
+              <span className="text-[10px] font-medium leading-tight text-center">{s.title}</span>
             </button>
+          );
+        })}
+      </div>
 
-            <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-bg-primary)] p-5">
-              {renderSectionContent(activeSection)}
-            </div>
-          </div>
-        </>
+      {/* ═══ CONTENT PANEL ═══ */}
+      {activeSection !== null && (
+        <div
+          ref={contentRef}
+          className="mt-3 animate-page-enter rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-bg-primary)] p-5"
+        >
+          {renderSectionContent(activeSection)}
+        </div>
       )}
+
+      {/* Show onboarding again */}
+      <div className="mt-6">
+        <button
+          onClick={() => {
+            usePreferencesStore.getState().setHasSeenOnboarding(false);
+            window.location.href = "/browse/surahs";
+          }}
+          className="w-full rounded-xl bg-[var(--theme-pill-bg)] px-4 py-3 text-[13px] font-medium text-[var(--theme-text-secondary)] transition-colors hover:bg-[var(--theme-hover-bg)]"
+        >
+          {t.onboarding.showAgain}
+        </button>
+      </div>
 
       <SaveStatusBar visible={showSaved} />
 
@@ -916,6 +909,38 @@ const PREVIEW_SURAH = {
     "إِنَّ شَانِئَكَ هُوَ الْأَبْتَرُ",
   ],
 };
+
+function WordColorPreview({
+  colorizeWords,
+  colors,
+  fontFamily,
+  textType,
+}: {
+  colorizeWords: boolean;
+  colors: string[];
+  fontFamily: string;
+  textType: string;
+}) {
+  const words = textType === "uthmani"
+    ? ["بِسْمِ", "ٱللَّهِ", "ٱلرَّحْمَٰنِ", "ٱلرَّحِيمِ"]
+    : ["بِسْمِ", "اللَّهِ", "الرَّحْمَٰنِ", "الرَّحِيمِ"];
+
+  return (
+    <div className="mt-4 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg)] px-5 py-4">
+      <p
+        dir="rtl"
+        className="text-center text-[1.5rem] leading-[2.4] text-[var(--theme-text)]"
+        style={{ fontFamily: `${fontFamily}, "Traditional Arabic", serif` }}
+      >
+        {words.map((w, i) => (
+          <span key={i} style={colorizeWords ? { color: colors[i % colors.length] } : undefined}>
+            {w}{i < words.length - 1 ? " " : ""}
+          </span>
+        ))}
+      </p>
+    </div>
+  );
+}
 
 function FontPickerSection({
   arabicFontId,

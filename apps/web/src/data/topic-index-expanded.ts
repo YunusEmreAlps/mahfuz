@@ -13,18 +13,6 @@ export interface TopicCategory {
   topics: TopicEntry[];
 }
 
-/** Subtle left-border accent color per category */
-export const CATEGORY_COLORS: Record<string, string> = {
-  ibadetler: "border-l-emerald-500",
-  inanc:     "border-l-sky-500",
-  ahlak:     "border-l-violet-500",
-  sosyal:    "border-l-amber-500",
-  yasaklar:  "border-l-rose-500",
-  kissalar:  "border-l-yellow-500",
-  kavramlar: "border-l-indigo-500",
-  tabiat:    "border-l-teal-500",
-  diger:     "border-l-slate-400",
-};
 
 export const EXPANDED_TOPIC_INDEX: TopicCategory[] = [
   {

@@ -2,10 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { chaptersQueryOptions } from "~/hooks/useChapters";
-import {
-  EXPANDED_TOPIC_INDEX,
-  CATEGORY_COLORS,
-} from "~/data/topic-index-expanded";
+import { EXPANDED_TOPIC_INDEX } from "~/data/topic-index-expanded";
 import type { TopicEntry, TopicCategory } from "~/data/topic-index-expanded";
 import { useTranslation } from "~/hooks/useTranslation";
 import type { Chapter } from "@mahfuz/shared/types";
@@ -23,16 +20,12 @@ export function FihristPanel({ initialTopic }: { initialTopic?: string }) {
   const { data: chapters } = useSuspenseQuery(chaptersQueryOptions());
 
   const [search, setSearch] = useState("");
-  // Which category is expanded (accordion — one at a time, unless searching)
   const [openCategory, setOpenCategory] = useState<string | null>(() => {
     if (!initialTopic) return null;
-    const catId = initialTopic.split(":")[0];
-    return catId || null;
+    return initialTopic.split(":")[0] || null;
   });
-  // Which topic detail is shown (composite key "categoryId:topicIdx")
   const [openTopic, setOpenTopic] = useState<string | null>(initialTopic ?? null);
 
-  // Filtered categories based on search
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     if (!q) return EXPANDED_TOPIC_INDEX;
@@ -55,7 +48,7 @@ export function FihristPanel({ initialTopic }: { initialTopic?: string }) {
 
   const toggleCategory = useCallback(
     (id: string) => {
-      if (isSearching) return; // all matching categories stay open during search
+      if (isSearching) return;
       setOpenCategory((prev) => (prev === id ? null : id));
       setOpenTopic(null);
     },
@@ -103,7 +96,7 @@ export function FihristPanel({ initialTopic }: { initialTopic?: string }) {
               .replace("{topics}", String(totalTopics))}
       </p>
 
-      {/* Categories */}
+      {/* Accordion */}
       {filtered.length === 0 ? (
         <div className="py-16 text-center">
           <p className="text-[15px] text-[var(--theme-text-secondary)]">
@@ -114,14 +107,16 @@ export function FihristPanel({ initialTopic }: { initialTopic?: string }) {
           </p>
         </div>
       ) : (
-        <div className="space-y-2.5">
-          {filtered.map((category) => {
+        <div className="overflow-hidden rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg-primary)]">
+          {filtered.map((category, idx) => {
             const isOpen = isSearching || openCategory === category.id;
+            const isLast = idx === filtered.length - 1;
             return (
-              <CategoryCard
+              <AccordionItem
                 key={category.id}
                 category={category}
                 isOpen={isOpen}
+                isLast={isLast}
                 onToggle={() => toggleCategory(category.id)}
                 openTopic={openTopic}
                 onSelectTopic={setOpenTopic}
@@ -136,11 +131,12 @@ export function FihristPanel({ initialTopic }: { initialTopic?: string }) {
   );
 }
 
-/* ── Category Card ── */
+/* ── Accordion Item ── */
 
-function CategoryCard({
+function AccordionItem({
   category,
   isOpen,
+  isLast,
   onToggle,
   openTopic,
   onSelectTopic,
@@ -149,6 +145,7 @@ function CategoryCard({
 }: {
   category: TopicCategory;
   isOpen: boolean;
+  isLast: boolean;
   onToggle: () => void;
   openTopic: string | null;
   onSelectTopic: (key: string | null) => void;
@@ -156,30 +153,29 @@ function CategoryCard({
   isSearching: boolean;
 }) {
   const { t, locale } = useTranslation();
-  const accentBorder = CATEGORY_COLORS[category.id] ?? CATEGORY_COLORS.diger;
 
   return (
-    <div className={`overflow-hidden rounded-2xl border-l-[3px] bg-[var(--theme-bg-primary)] ${accentBorder}`}>
-      {/* Category Header */}
+    <div className={isLast ? "" : "border-b border-[var(--theme-border)]"}>
+      {/* Trigger */}
       <button
         type="button"
         onClick={onToggle}
         className={`flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors ${
-          isSearching ? "cursor-default" : "hover:bg-[var(--theme-hover-bg)] active:scale-[0.995]"
+          isSearching
+            ? "cursor-default"
+            : "hover:bg-[var(--theme-hover-bg)]"
         }`}
       >
-        <span className="text-[20px] leading-none">{category.icon}</span>
-        <div className="flex-1 min-w-0">
-          <span className="text-[15px] font-semibold text-[var(--theme-text)]">
-            {getCategoryLabel(category, locale)}
-          </span>
-          <span className="ml-2 text-[12px] text-[var(--theme-text-tertiary)]">
-            {category.topics.length} {t.browse.topicCount}
-          </span>
-        </div>
+        <span className="text-[18px] leading-none">{category.icon}</span>
+        <span className="flex-1 text-[14px] font-medium text-[var(--theme-text)]">
+          {getCategoryLabel(category, locale)}
+        </span>
+        <span className="text-[12px] tabular-nums text-[var(--theme-text-tertiary)]">
+          {category.topics.length}
+        </span>
         {!isSearching && (
           <svg
-            className={`h-4 w-4 shrink-0 text-[var(--theme-text-tertiary)] transition-transform ${isOpen ? "rotate-180" : ""}`}
+            className={`h-4 w-4 shrink-0 text-[var(--theme-text-tertiary)] transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -190,18 +186,23 @@ function CategoryCard({
         )}
       </button>
 
-      {/* Topic Grid */}
-      {isOpen && (
-        <div className="border-t border-[var(--theme-border)] px-3 pb-3 pt-2">
-          <TopicGrid
-            categoryId={category.id}
-            topics={category.topics}
-            openTopic={openTopic}
-            onSelectTopic={onSelectTopic}
-            chapters={chapters}
-          />
+      {/* Content — animated with grid-template-rows */}
+      <div
+        className="accordion-grid"
+        data-open={isOpen}
+      >
+        <div className="overflow-hidden">
+          <div className="px-4 pb-4">
+            <TopicGrid
+              categoryId={category.id}
+              topics={category.topics}
+              openTopic={openTopic}
+              onSelectTopic={onSelectTopic}
+              chapters={chapters}
+            />
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -243,7 +244,6 @@ function TopicGrid({
     return () => ro.disconnect();
   }, [detectCols]);
 
-  // Scroll detail into view
   useEffect(() => {
     if (openTopic?.startsWith(`${categoryId}:`) && detailRef.current) {
       requestAnimationFrame(() => {
@@ -252,7 +252,6 @@ function TopicGrid({
     }
   }, [openTopic, categoryId]);
 
-  // Find which topic in this category is open
   const openIdx = openTopic?.startsWith(`${categoryId}:`)
     ? Number(openTopic.split(":")[1])
     : -1;
@@ -274,10 +273,10 @@ function TopicGrid({
         className={`flex aspect-square flex-col items-center justify-center gap-1.5 rounded-xl transition-all ${
           isOpen
             ? "bg-primary-600/10 ring-1 ring-primary-600/20"
-            : "bg-[var(--theme-bg-primary)] hover:bg-[var(--theme-hover-bg)] active:scale-[0.97]"
+            : "bg-[var(--theme-hover-bg)] hover:bg-[var(--theme-pill-bg)] active:scale-[0.97]"
         }`}
       >
-        <span className="text-[22px] leading-none">{entry.icon}</span>
+        <span className="text-[20px] leading-none">{entry.icon}</span>
         <span
           className={`max-w-full px-1 text-center text-[10px] font-medium leading-tight ${
             isOpen ? "text-primary-700" : "text-[var(--theme-text-secondary)]"
@@ -288,27 +287,33 @@ function TopicGrid({
       </button>,
     );
 
-    // Insert detail panel after the last card in the active row
     if (i === insertAfterIndex && openIdx >= 0) {
       const topic = topics[openIdx];
       elements.push(
         <div
           key={`detail-${categoryId}`}
           ref={detailRef}
-          className="relative col-span-full rounded-xl bg-[var(--theme-bg-primary)] p-3"
+          className="relative col-span-full rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg-secondary)] p-3"
           style={{ gridColumn: "1 / -1" }}
         >
-          {/* Arrow pointer */}
+          {/* Arrow */}
           <div
-            className="absolute -top-2 h-0 w-0 border-x-8 border-b-8 border-x-transparent border-b-[var(--theme-bg-primary)]"
+            className="absolute -top-[7px] h-0 w-0 border-x-[7px] border-b-[7px] border-x-transparent border-b-[var(--theme-border)]"
+            style={{
+              left: `calc(${((openIdx % cols) / cols) * 100}% + ${100 / cols / 2}%)`,
+              transform: "translateX(-50%)",
+            }}
+          />
+          <div
+            className="absolute -top-[5px] h-0 w-0 border-x-[6px] border-b-[6px] border-x-transparent border-b-[var(--theme-bg-secondary)]"
             style={{
               left: `calc(${((openIdx % cols) / cols) * 100}% + ${100 / cols / 2}%)`,
               transform: "translateX(-50%)",
             }}
           />
           {/* Header */}
-          <div className="mb-2 flex items-center gap-2">
-            <span className="text-[20px] leading-none">{topic.icon}</span>
+          <div className="mb-2.5 flex items-center gap-2">
+            <span className="text-[18px] leading-none">{topic.icon}</span>
             <div className="flex-1">
               <h3 className="text-[13px] font-semibold text-[var(--theme-text)]">
                 {getTopicName(topic, locale)}
@@ -320,16 +325,10 @@ function TopicGrid({
             <button
               type="button"
               onClick={() => onSelectTopic(null)}
-              className="rounded-lg p-1 text-[var(--theme-text-tertiary)] transition-colors hover:bg-[var(--theme-hover-bg)] hover:text-[var(--theme-text)]"
+              className="rounded-lg p-1.5 text-[var(--theme-text-tertiary)] transition-colors hover:bg-[var(--theme-hover-bg)] hover:text-[var(--theme-text)]"
               aria-label={t.common.close}
             >
-              <svg
-                className="h-3.5 w-3.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -349,13 +348,13 @@ function TopicGrid({
                     topic: `${categoryId}:${openIdx}`,
                     verse: firstVerse ? Number(firstVerse) : undefined,
                   }}
-                  className="group flex items-center gap-1.5 rounded-lg bg-[var(--theme-hover-bg)] px-2.5 py-1 transition-colors hover:bg-primary-600/10"
+                  className="group flex items-center gap-1.5 rounded-lg bg-[var(--theme-bg-primary)] px-2.5 py-1.5 text-[11px] transition-colors hover:bg-primary-600/10"
                 >
-                  <span className="text-[11px] font-semibold tabular-nums text-primary-700">
+                  <span className="font-semibold tabular-nums text-primary-700">
                     {ref}
                   </span>
                   {ch && (
-                    <span className="text-[10px] text-[var(--theme-text-tertiary)] group-hover:text-primary-600">
+                    <span className="text-[var(--theme-text-tertiary)] group-hover:text-primary-600">
                       {ch.name_simple}
                     </span>
                   )}
