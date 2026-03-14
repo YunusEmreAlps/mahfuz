@@ -2,6 +2,7 @@ export { LetterCard } from "./LetterCard";
 export { LetterFormsDisplay } from "./LetterFormsDisplay";
 export { HarakatDisplay } from "./HarakatDisplay";
 export { ExerciseCard } from "./ExerciseCard";
+export { ExerciseLayout } from "./ExerciseLayout";
 export { SoundMatchExercise } from "./SoundMatchExercise";
 export { WordBuildExercise } from "./WordBuildExercise";
 export { TajweedIdentifyExercise } from "./TajweedIdentifyExercise";

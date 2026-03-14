@@ -1,9 +1,10 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useMemo, useEffect, useRef } from "react";
 import type { QuestWord } from "@mahfuz/shared/types";
 import { useTranslation } from "~/hooks/useTranslation";
 import { useLearnAudio } from "~/hooks/useLearnAudio";
 import { playSuccessChime } from "~/lib/learn-audio";
 import type { QuestExercise } from "~/lib/quest-exercises";
+import { ExerciseLayout } from "./ExerciseLayout";
 
 interface QuestExerciseCardProps {
   exercise: QuestExercise;
@@ -20,8 +21,6 @@ export function QuestExerciseCard({
   sevapPointPerCorrect,
   onAnswer,
 }: QuestExerciseCardProps) {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [answered, setAnswered] = useState(false);
   const { t } = useTranslation();
   const { playAudioRef, isPlaying } = useLearnAudio();
   const hasAutoPlayed = useRef(false);
@@ -35,10 +34,8 @@ export function QuestExerciseCard({
     return arr;
   }, [exercise.word.id]);
 
-  // Auto-play audio when exercise changes (new question)
   useEffect(() => {
     hasAutoPlayed.current = false;
-    // Small delay to let the UI settle before playing
     const timer = setTimeout(() => {
       if (!hasAutoPlayed.current) {
         hasAutoPlayed.current = true;
@@ -52,170 +49,93 @@ export function QuestExerciseCard({
     playAudioRef(exercise.word.audioRef);
   };
 
-  const autoAdvanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const handleAdvance = () => {
-    if (autoAdvanceTimer.current) {
-      clearTimeout(autoAdvanceTimer.current);
-      autoAdvanceTimer.current = null;
-    }
-    const wordId = selectedId;
-    const correct = wordId === exercise.word.id;
-    setSelectedId(null);
-    setAnswered(false);
-    if (wordId) onAnswer(wordId, correct);
-  };
-
-  const handleSelect = (word: QuestWord) => {
-    if (answered) return;
-    setSelectedId(word.id);
-    setAnswered(true);
-
-    const isCorrect = word.id === exercise.word.id;
-
-    if (isCorrect) {
-      playSuccessChime();
-    }
-
-    // Auto-advance after 3s if user doesn't tap "Next"
-    autoAdvanceTimer.current = setTimeout(handleAdvance, 3000);
-  };
-
-  // Clean up timer on unmount or exercise change
-  useEffect(() => {
-    return () => {
-      if (autoAdvanceTimer.current) {
-        clearTimeout(autoAdvanceTimer.current);
-      }
-    };
-  }, [exercise.word.id]);
+  const options = shuffledOptions.map((word) => ({
+    key: word.id,
+    label: (
+      <span className="arabic-text text-xl leading-relaxed" dir="rtl">
+        {word.arabic}
+      </span>
+    ),
+    isCorrect: word.id === exercise.word.id,
+  }));
 
   return (
     <div className="rounded-2xl bg-[var(--theme-bg-primary)] p-6 shadow-[var(--shadow-card)]">
-      {/* Counter */}
-      <div className="mb-4 flex items-center justify-between">
-        <span className="text-[12px] text-[var(--theme-text-tertiary)]">
-          {exerciseNumber}/{totalExercises}
-        </span>
-        <span className="text-[12px] font-medium text-primary-600">
-          +{sevapPointPerCorrect} {t.learn.pointLabel}
-        </span>
-      </div>
-
-      {/* Prompt */}
-      <p className="mb-4 text-center text-[14px] font-medium text-[var(--theme-text)]">
-        {t.learn.quests.listenAndChoose}
-      </p>
-
-      {/* Play button */}
-      <div className="mb-6 flex items-center justify-center">
-        <button
-          onClick={handlePlay}
-          disabled={isPlaying}
-          className={`flex h-20 w-20 items-center justify-center rounded-full border-2 transition-all ${
-            isPlaying
-              ? "border-primary-400 bg-primary-50 dark:bg-primary-950/30"
-              : "border-[var(--theme-border)] bg-[var(--theme-bg)] hover:border-primary-400 hover:bg-primary-50 active:scale-[0.95] dark:hover:bg-primary-950/30"
-          }`}
-          aria-label="Play audio"
-        >
-          {isPlaying ? (
-            <svg
-              className="h-8 w-8 animate-pulse text-primary-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15.536 8.464a5 5 0 010 7.072M17.95 6.05a8 8 0 010 11.9M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707A1 1 0 0112 5.586v12.828a1 1 0 01-1.707.707L5.586 15z"
-              />
-            </svg>
-          ) : (
-            <svg
-              className="h-8 w-8 text-[var(--theme-text-secondary)]"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15.536 8.464a5 5 0 010 7.072M12 6.253v11.494m0 0A5.978 5.978 0 017.5 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h3.5A5.978 5.978 0 0112 6.253z"
-              />
-            </svg>
-          )}
-        </button>
-      </div>
-
-      {/* 2x2 Options grid */}
-      <div className="grid grid-cols-2 gap-3">
-        {shuffledOptions.map((word) => {
-          let bg = "bg-[var(--theme-bg)] hover:bg-[var(--theme-hover-bg)]";
-          let border = "border-[var(--theme-border)]";
-          let textColor = "text-[var(--theme-text)]";
-
-          if (answered && selectedId === word.id) {
-            if (word.id === exercise.word.id) {
-              bg = "bg-emerald-50 dark:bg-emerald-950/30";
-              border = "border-emerald-500";
-              textColor = "text-emerald-700 dark:text-emerald-400";
-            } else {
-              bg = "bg-red-50 dark:bg-red-950/30";
-              border = "border-red-500";
-              textColor = "text-red-700 dark:text-red-400";
-            }
-          } else if (answered && word.id === exercise.word.id) {
-            bg = "bg-emerald-50 dark:bg-emerald-950/30";
-            border = "border-emerald-500";
-            textColor = "text-emerald-700 dark:text-emerald-400";
-          }
-
-          return (
-            <button
-              key={word.id}
-              onClick={() => handleSelect(word)}
-              disabled={answered}
-              aria-label={`${word.arabic} — ${word.meaning}`}
-              className={`rounded-xl border-2 ${border} ${bg} px-4 py-3 text-center ${textColor} transition-all ${!answered ? "active:scale-[0.97]" : ""}`}
-            >
-              <span className="arabic-text text-xl leading-relaxed" dir="rtl">
-                {word.arabic}
+      <ExerciseLayout
+        prompt={
+          <>
+            <div className="mb-4 flex items-center justify-between">
+              <span className="text-[12px] text-[var(--theme-text-tertiary)]">
+                {exerciseNumber}/{totalExercises}
               </span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Feedback with meaning + Next button */}
-      {answered && selectedId !== null && (
-        <div className="mt-4 space-y-3">
-          <div
-            className={`rounded-xl px-4 py-3 text-center ${
-              selectedId === exercise.word.id
-                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400"
-                : "bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400"
-            }`}
-          >
-            <p className="text-[13px] font-medium">
-              {selectedId === exercise.word.id ? t.learn.correct : t.learn.incorrect}
+              <span className="text-[12px] font-medium text-primary-600">
+                +{sevapPointPerCorrect} {t.learn.pointLabel}
+              </span>
+            </div>
+            <p className="mb-2 text-center text-[14px] font-medium text-[var(--theme-text)]">
+              {t.learn.quests.listenAndChoose}
             </p>
-            <p className="mt-1 text-[12px] opacity-80">
-              <span className="arabic-text" dir="rtl">{exercise.word.arabic}</span>
-              {" "}({exercise.word.transliteration}) — {exercise.word.meaning}
-            </p>
-          </div>
-          <button
-            onClick={handleAdvance}
-            className="w-full rounded-xl bg-primary-600 px-6 py-3 text-[14px] font-medium text-white transition-all hover:bg-primary-700 active:scale-[0.97]"
-          >
-            {t.learn.next}
-          </button>
-        </div>
-      )}
+            <div className="mb-2 flex items-center justify-center">
+              <button
+                onClick={handlePlay}
+                disabled={isPlaying}
+                className={`flex h-20 w-20 items-center justify-center rounded-full border-2 transition-all ${
+                  isPlaying
+                    ? "border-primary-400 bg-primary-50 dark:bg-primary-950/30"
+                    : "border-[var(--theme-border)] bg-[var(--theme-bg)] hover:border-primary-400 hover:bg-primary-50 active:scale-[0.95] dark:hover:bg-primary-950/30"
+                }`}
+                aria-label="Play audio"
+              >
+                {isPlaying ? (
+                  <svg
+                    className="h-8 w-8 animate-pulse text-primary-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15.536 8.464a5 5 0 010 7.072M17.95 6.05a8 8 0 010 11.9M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707A1 1 0 0112 5.586v12.828a1 1 0 01-1.707.707L5.586 15z"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    className="h-8 w-8 text-[var(--theme-text-secondary)]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15.536 8.464a5 5 0 010 7.072M12 6.253v11.494m0 0A5.978 5.978 0 017.5 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h3.5A5.978 5.978 0 0112 6.253z"
+                    />
+                  </svg>
+                )}
+              </button>
+            </div>
+          </>
+        }
+        options={options}
+        correctAnswerDisplay={
+          <span>
+            <span className="arabic-text" dir="rtl">
+              {exercise.word.arabic}
+            </span>{" "}
+            ({exercise.word.transliteration}) — {exercise.word.meaning}
+          </span>
+        }
+        onNext={(selectedIndex, isCorrect) => {
+          if (isCorrect) {
+            playSuccessChime();
+          }
+          const selectedWord = shuffledOptions[selectedIndex];
+          onAnswer(selectedWord.id, isCorrect);
+        }}
+      />
     </div>
   );
 }
