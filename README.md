@@ -2,9 +2,9 @@
 
 <br>
 
-<img src="apps/web/public/icons/mahfuz-logo-organic-gold.svg" width="80" alt="Mahfuz — محفوظ">
+<img src="apps/web/public/icons/mahfuz-logo-organic-gold.svg" width="80" alt="Mahfuz">
 
-# Mahfuz — محفوظ
+# Mahfuz / محفوظ
 
 A minimal, distraction-free Quran companion for the web.
 
@@ -18,36 +18,36 @@ A minimal, distraction-free Quran companion for the web.
 
 ## About
 
-Mahfuz is a Quran companion designed around simplicity. No clutter, no ads — just the text and the tools you need to read, listen, learn, and memorize.
+Mahfuz is a Quran companion designed around simplicity. No clutter, no ads. Just the text and the tools you need to read, listen, learn, and memorize.
 
-- **Three reading modes** — Line-by-line for focused reading, word-by-word with inline translation and transliteration, and a traditional Mushaf page with Karahisari-style illuminated borders in CSS and SVG.
-- **Focus mode** — Distraction-free reading with annotation canvas, gesture navigation, and wake lock.
-- **Audio playback** — Verse or surah-level playback with real-time word highlighting, gapless preloading, reciter selection, adjustable speed, and lock screen controls via MediaSession.
-- **Memorization** — SM-2 spaced repetition, progress tracking per surah and ayah, daily goals, review sessions, and verification exams.
-- **Learn to Read** — 14-stage curriculum from letters to tajweed, with adaptive practice and Quranic word quests.
-- **Library** — Unified hub for courses, learning tracks, and memorization — all in one place.
-- **Offline first** — Three-layer caching: TanStack Query (memory) + Dexie IndexedDB (persistent) + Service Worker (PWA).
-- **Bilingual** — Full Turkish and English interface with auto-detection.
+- **Three reading modes.** Line-by-line for focused reading, word-by-word with inline translation and transliteration, and a traditional Mushaf page with Karahisari-style illuminated borders.
+- **Focus mode.** Distraction-free reading with annotation canvas, gesture navigation, and wake lock.
+- **Audio playback.** Verse or surah-level playback with real-time word highlighting, gapless preloading, reciter selection, adjustable speed, and lock screen controls via MediaSession.
+- **Memorization.** SM-2 spaced repetition, progress tracking per surah and ayah, daily goals, review sessions, and verification exams.
+- **Learn to Read.** A 14-stage curriculum from letters to tajweed, with adaptive practice and Quranic word quests.
+- **Library.** Unified hub for courses, learning tracks, and memorization in one place.
+- **Offline first.** Three-layer caching with TanStack Query, Dexie IndexedDB, and Service Worker.
+- **Bilingual.** Full Turkish and English interface with auto-detection.
 
 ## Roadmap
 
 | Status | Feature |
 |:------:|---------|
-| Done | Reading — Three view modes, topic index, command palette |
-| Done | Focus — Distraction-free reading with annotations |
-| Done | Audio — Verse-level playback with word-level sync |
-| Done | Offline — PWA with stale-while-revalidate caching |
-| Done | Authentication — Better Auth with cookie sessions |
-| Done | Memorization — Spaced repetition with SM-2 |
-| Done | Learn — 14-stage curriculum with side quests |
-| Done | Library — Unified courses, tracks, and memorization |
-| Done | i18n — Turkish and English |
-| Done | Gamification — Achievement badges |
-| Done | Performance — Virtualization, memoization, lazy loading |
-| Next | Sync — Cross-device progress sync |
-| Next | Share & SEO — Social sharing, calligraphy cards, deep links |
-| Next | Mobile — Native Android and iOS apps |
-| Next | @mahfuz/sdk — Public npm package for Quran data |
+| Done | Reading: three view modes, topic index, command palette |
+| Done | Focus: distraction-free reading with annotations |
+| Done | Audio: verse-level playback with word-level sync |
+| Done | Offline: PWA with stale-while-revalidate caching |
+| Done | Authentication: Better Auth with cookie sessions |
+| Done | Memorization: spaced repetition with SM-2 |
+| Done | Learn: 14-stage curriculum with side quests |
+| Done | Library: unified courses, tracks, and memorization |
+| Done | i18n: Turkish and English |
+| Done | Gamification: achievement badges |
+| Done | Performance: virtualization, memoization, lazy loading |
+| Next | Sync: cross-device progress sync |
+| Next | Share and SEO: social sharing, calligraphy cards, deep links |
+| Next | Mobile: native Android and iOS apps |
+| Next | @mahfuz/sdk: public npm package for Quran data |
 
 ## Getting Started
 
@@ -95,8 +95,8 @@ mahfuz-app/
 │       ├── server.mjs            Node.js SSR server
 │       ├── drizzle/              Database migrations
 │       └── src/
-│           ├── components/       UI components (quran, browse, audio, focus, library, settings, learn, memorization)
-│           ├── hooks/            Custom hooks + query/mutation hooks
+│           ├── components/       UI components
+│           ├── hooks/            Custom hooks, query and mutation hooks
 │           ├── locales/          i18n strings (tr.ts, en.ts)
 │           ├── lib/              Utilities, constants, store helpers
 │           ├── routes/           File-based routes (32 routes)
@@ -104,7 +104,7 @@ mahfuz-app/
 ├── packages/
 │   ├── api/                      Quran.com API client with IndexedDB cache
 │   ├── audio-engine/             Playback engine with word-level sync
-│   ├── db/                       Dexie IndexedDB schemas + Drizzle ORM
+│   ├── db/                       Dexie IndexedDB schemas and Drizzle ORM
 │   ├── gamification/             Badge and achievement system
 │   ├── memorization/             SM-2 spaced repetition algorithm
 │   ├── sdk/                      Public SDK (planned)
@@ -130,12 +130,12 @@ React Components (Zustand for UI state)
 
 ### Performance
 
-- **Virtualized verse list** — Only ~15 DOM nodes for a 286-verse surah (TanStack Virtual)
-- **Per-verse audio isolation** — During playback, only the active verse re-renders
-- **Consolidated Zustand selectors** — Single `useShallow` subscription per component
-- **React.memo** on all verse, card, and translation components
-- **Dynamic imports** — Topic index and heavy data lazy-loaded on demand
-- **SW stale-while-revalidate** — API responses served instantly from cache
+- **Virtualized verse list.** Only ~15 DOM nodes for a 286-verse surah via TanStack Virtual.
+- **Per-verse audio isolation.** During playback, only the active verse re-renders.
+- **Consolidated Zustand selectors.** Single `useShallow` subscription per component.
+- **React.memo** on all verse, card, and translation components.
+- **Dynamic imports.** Topic index and heavy data lazy-loaded on demand.
+- **Service Worker caching.** API responses served instantly from cache.
 
 ## Credits
 
@@ -143,26 +143,26 @@ React Components (Zustand for UI state)
 
 | Translation | Author | Source |
 |-------------|--------|--------|
-| Diyanet İşleri Başkanlığı Meali | Diyanet İşleri Başkanlığı | [quran.com](https://quran.com) API |
-| Ömer Çelik Meali | Prof. Dr. Ömer Çelik | [kuranvemeali.com](https://www.kuranvemeali.com) |
-| Ömer Nasuhi Bilmen Meali | Ömer Nasuhi Bilmen | [kuranayetleri.net](https://kuranayetleri.net) |
+| Diyanet Isleri Baskanligi Meali | Diyanet Isleri Baskanligi | [quran.com](https://quran.com) API |
+| Omer Celik Meali | Prof. Dr. Omer Celik | [kuranvemeali.com](https://www.kuranvemeali.com) |
+| Omer Nasuhi Bilmen Meali | Omer Nasuhi Bilmen | [kuranayetleri.net](https://kuranayetleri.net) |
 | Ali Fikri Yavuz Meali | Ali Fikri Yavuz | [kuranayetleri.net](https://kuranayetleri.net) |
 
 ### Data Sources
 
-- **[Quran.com API](https://quran.com)** — Verse text, word-by-word data, transliteration, and Diyanet translation
-- **[Kuran Meali Ebook Oluşturucu](https://github.com/alialparslan/Kuran-Meali-Ebook-Olusturucu)** by alialparslan — Ali Fikri Yavuz and Ömer Nasuhi Bilmen translations in JSON format
+- **[Quran.com API](https://quran.com).** Verse text, word-by-word data, transliteration, and Diyanet translation.
+- **[Kuran Meali Ebook Olusturucu](https://github.com/alialparslan/Kuran-Meali-Ebook-Olusturucu)** by alialparslan. Ali Fikri Yavuz and Omer Nasuhi Bilmen translations in JSON format.
 
 ### Fonts
 
-- **[KFGQPC Uthmani Hafs](https://fonts.qurancomplex.gov.sa)** — King Fahd Glorious Quran Printing Complex
-- **[Google Fonts](https://fonts.google.com)** — Scheherazade New, Amiri, Noto Naskh Arabic, Rubik, Zain, Reem Kufi, Playpen Sans Arabic
+- **[KFGQPC Uthmani Hafs](https://fonts.qurancomplex.gov.sa).** King Fahd Glorious Quran Printing Complex.
+- **[Google Fonts](https://fonts.google.com).** Scheherazade New, Amiri, Noto Naskh Arabic, Rubik, Zain, Reem Kufi, Playpen Sans Arabic.
 
 ## Contributing
 
-We'd love to have talented developers join the journey. Whether you're into React, mobile development, or just passionate about building tools for the Quran — there's a place for you here.
+Contributions are welcome. Whether you work with React, mobile development, or are passionate about building tools for the Quran, there is a place for you here.
 
-Start by opening an issue to discuss your idea, then send a PR.
+Start by opening an issue to discuss your idea, then send a pull request.
 
 ## License
 
