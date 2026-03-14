@@ -8,6 +8,8 @@ import type {
 import { DEFAULT_RECITER_ID } from "@mahfuz/shared/constants";
 import type { AudioEngine, ChapterAudioData } from "@mahfuz/audio-engine";
 
+export type { PlaybackState, PlaybackSpeed, RepeatMode };
+
 interface AudioStoreState {
   // Playback state
   playbackState: PlaybackState;

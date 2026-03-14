@@ -95,6 +95,29 @@ export interface LearnConceptEntry {
   updatedAt: number; // epoch ms
 }
 
+/** Annotation page entry for Focus Mode (strokes per page) */
+export interface AnnotationPageEntry {
+  id: string; // "${userId}:${pageNumber}"
+  userId: string;
+  pageNumber: number; // 1-604
+  strokes: string; // JSON-serialized Stroke[]
+  updatedAt: number;
+}
+
+/** Text note entry for Focus Mode */
+export interface TextNoteEntry {
+  id: string; // nanoid
+  userId: string;
+  verseKey: VerseKey;
+  pageNumber: number; // for page-level queries
+  content: string;
+  color: string;
+  positionX: number; // 0-1 normalized
+  positionY: number; // 0-1 normalized
+  createdAt: number;
+  updatedAt: number;
+}
+
 /** Quest progress entry for Side Quests */
 export interface QuestProgressEntry {
   id: string;
@@ -120,6 +143,8 @@ export class MahfuzDB extends Dexie {
   lesson_progress!: EntityTable<LessonProgressEntry, "id">;
   learn_concepts!: EntityTable<LearnConceptEntry, "id">;
   quest_progress!: EntityTable<QuestProgressEntry, "id">;
+  annotation_pages!: EntityTable<AnnotationPageEntry, "id">;
+  text_notes!: EntityTable<TextNoteEntry, "id">;
 
   constructor() {
     super("mahfuz-cache");
@@ -210,6 +235,24 @@ export class MahfuzDB extends Dexie {
             }),
         ]);
       });
+
+    // v7: annotation_pages + text_notes for Focus Mode
+    this.version(7).stores({
+      cache: "key",
+      memorization_cards:
+        "id, [userId+verseKey], [userId+nextReviewDate], [userId+confidence]",
+      review_entries: "id, cardId, [userId+reviewedAt]",
+      memorization_goals: "userId",
+      sync_queue: "id, [table+synced], createdAt",
+      user_badges: "id, [userId+badgeId], userId",
+      lesson_progress:
+        "id, [userId+stageId], [userId+status], lessonId, [userId+updatedAt]",
+      learn_concepts:
+        "id, [userId+conceptId], [userId+nextReviewAt], userId, [userId+updatedAt]",
+      quest_progress: "id, [userId+questId], userId, [userId+updatedAt]",
+      annotation_pages: "id, [userId+pageNumber]",
+      text_notes: "id, [userId+pageNumber]",
+    });
   }
 }
 

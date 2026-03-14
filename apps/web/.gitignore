@@ -1,10 +1,5 @@
-# Local Netlify folder
-.netlify
-netlify/functions
-
 # Database
 local.db
 
 # Environment
 .env
-

@@ -1,6 +1,5 @@
 import { createRouter } from "@tanstack/react-router";
 import { routerWithQueryClient } from "@tanstack/react-router-with-query";
-import { QueryClient } from "@tanstack/react-query";
 import { routeTree } from "./routeTree.gen";
 import { createQueryClient } from "./lib/query";
 
@@ -14,7 +13,7 @@ export function getRouter() {
       defaultPreload: "intent",
       context: { queryClient, session: null },
     }),
-    queryClient
+    queryClient,
   );
 
   return router;

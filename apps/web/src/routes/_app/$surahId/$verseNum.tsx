@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter, notFound } from "@tanstack/react-router";
 import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useCallback, useRef, useEffect } from "react";
 import { chapterQueryOptions } from "~/hooks/useChapters";
@@ -19,6 +19,8 @@ export const Route = createFileRoute("/_app/$surahId/$verseNum")({
   loader: ({ context, params }) => {
     const surah = Number(params.surahId);
     const verse = Number(params.verseNum);
+    if (!Number.isInteger(surah) || surah < 1 || surah > TOTAL_CHAPTERS || !Number.isInteger(verse) || verse < 1)
+      throw notFound();
     const verseKey = `${surah}:${verse}`;
     return Promise.all([
       context.queryClient.ensureQueryData(chapterQueryOptions(surah)),

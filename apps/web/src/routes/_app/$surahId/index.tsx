@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, notFound } from "@tanstack/react-router";
 import { useSuspenseQuery, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogTitle } from "~/components/ui/Dialog";
@@ -8,7 +8,7 @@ import { versesByChapterQueryOptions } from "~/hooks/useVerses";
 import { wbwByChapterQueryOptions } from "~/hooks/useWbwData";
 import { mergeWbwIntoVerses } from "~/lib/quran-data";
 import { chapterAudioQueryOptions } from "~/hooks/useAudio";
-import { VerseList, ReadingToolbar } from "~/components/quran";
+import { VerseList } from "~/components/quran";
 import { Loading } from "~/components/ui/Loading";
 import { Skeleton } from "~/components/ui/Skeleton";
 import { TOTAL_CHAPTERS, TOTAL_PAGES } from "@mahfuz/shared/constants";
@@ -21,12 +21,12 @@ import type { Chapter } from "@mahfuz/shared/types";
 import type { ChapterAudioData } from "@mahfuz/audio-engine";
 import { useReadingHistory } from "~/stores/useReadingHistory";
 import { useReadingListStore } from "~/stores/useReadingListStore";
-import { AddToReadingListButton } from "~/components/browse/AddToReadingListButton";
 import { useTranslatedVerses } from "~/hooks/useTranslatedVerses";
 import type { TopicEntry } from "~/data/topic-index-expanded";
 import { EXPANDED_TOPIC_INDEX } from "~/data/topic-index-expanded";
 import { useTranslation } from "~/hooks/useTranslation";
 import { getSurahName } from "~/lib/surah-name";
+import { FocusModeIcon } from "~/components/focus/FocusIcons";
 
 export const Route = createFileRoute("/_app/$surahId/")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -35,6 +35,8 @@ export const Route = createFileRoute("/_app/$surahId/")({
   }),
   loader: ({ context, params }) => {
     const chapterId = Number(params.surahId);
+    if (!Number.isInteger(chapterId) || chapterId < 1 || chapterId > TOTAL_CHAPTERS)
+      throw notFound();
     return Promise.all([
       context.queryClient.ensureQueryData(chapterQueryOptions(chapterId)),
       context.queryClient.ensureQueryData(
@@ -260,39 +262,33 @@ function SurahView() {
         <TopicNavBar topic={resolvedTopic} topicKey={topicParam} currentSurahId={chapterId} t={t} locale={locale} />
       )}
 
-      {/* Surah header */}
-      <div className="relative mb-4 rounded-2xl bg-[var(--theme-pill-bg)] px-4 py-3.5 sm:mb-6">
-        {/* Top-right: bookmark + A ع */}
-        <div className="absolute top-2.5 right-3 flex items-center gap-0.5">
-          <AddToReadingListButton type="surah" id={chapterId} iconOnly />
-          <ReadingToolbar segmentStyle />
-        </div>
-
-        <div className="relative">
-          {/* Surah name */}
+      {/* Surah header — centered hero card */}
+      <div className="relative mb-4 rounded-2xl bg-[var(--theme-pill-bg)] px-4 py-5 sm:mb-6 sm:py-6">
+        <div className="flex flex-col items-center text-center">
+          {/* Arabic name (large, centered) */}
           <button
             type="button"
             onClick={() => setPickerOpen(true)}
-            className="group min-w-0 text-left transition-transform active:scale-[0.97]"
+            className="group transition-transform active:scale-[0.97]"
           >
-            <div className="flex items-center gap-2">
-              <h1 className="arabic-text text-[1.75rem] leading-none text-[var(--theme-text)]" dir="rtl">
-                {chapter.name_arabic}
-              </h1>
-              <div className="flex items-center gap-1">
-                <span className="text-[15px] font-semibold text-[var(--theme-text)]">{getSurahName(chapter.id, chapter.translated_name.name, locale)}</span>
-                <svg className="h-3 w-3 text-[var(--theme-text-tertiary)]" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 6l4 4 4-4" />
-                </svg>
-              </div>
+            <h1 className="arabic-text text-[2.25rem] leading-tight text-[var(--theme-text)]" dir="rtl">
+              {chapter.name_arabic}
+            </h1>
+            <div className="mt-1 flex items-center justify-center gap-1.5">
+              <span className="text-[15px] font-semibold text-[var(--theme-text)]">{getSurahName(chapter.id, chapter.translated_name.name, locale)}</span>
+              <svg className="h-3 w-3 text-[var(--theme-text-tertiary)]" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 6l4 4 4-4" />
+              </svg>
             </div>
-            <p className="mt-0.5 text-[11px] text-[var(--theme-text-tertiary)]">
-              {chapter.verses_count} {t.quranReader.versesUnit} · {t.quranReader.pageAbbr}{chapter.pages[0]}–{chapter.pages[1]} · {t.common.juz} {juzNumber}
-            </p>
           </button>
 
-          {/* Action row */}
-          <div className="mt-3 flex flex-wrap items-center gap-2">
+          {/* Metadata */}
+          <p className="mt-1.5 text-[11px] text-[var(--theme-text-tertiary)]">
+            {chapter.verses_count} {t.quranReader.versesUnit} · {t.quranReader.pageAbbr}{chapter.pages[0]}–{chapter.pages[1]} · {t.common.juz} {juzNumber}
+          </p>
+
+          {/* Action buttons (centered) */}
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
             <button
               onClick={handlePlaySurah}
               className="inline-flex items-center gap-1 rounded-full bg-primary-600 px-3 py-1.5 text-[11px] font-medium text-white transition-all hover:bg-primary-700 active:scale-[0.97]"
@@ -306,6 +302,15 @@ function SurahView() {
               </svg>
               {isPlayingThisSurah ? t.quranReader.pause : t.quranReader.listen}
             </button>
+
+            <Link
+              to="/focus/$pageNumber"
+              params={{ pageNumber: String(chapter.pages[0]) }}
+              className="inline-flex items-center gap-1 rounded-full bg-[var(--theme-hover-bg)] px-3 py-1.5 text-[11px] font-medium text-[var(--theme-text-secondary)] transition-all hover:bg-[var(--theme-pill-bg)] active:scale-[0.97]"
+            >
+              <FocusModeIcon width={14} height={14} />
+              Focus
+            </Link>
 
             {/* View mode picker */}
             <Popover open={modeOpen} onOpenChange={setModeOpen}>
@@ -322,7 +327,7 @@ function SurahView() {
                   {viewModeOptions.find((o) => o.value === viewMode)?.label}
                 </button>
               </PopoverTrigger>
-              <PopoverContent align="start" className="w-40 overflow-hidden rounded-xl py-1">
+              <PopoverContent align="center" className="w-40 overflow-hidden rounded-xl py-1">
                 {viewModeOptions.map((opt) => (
                   <button
                     key={opt.value}
@@ -355,57 +360,51 @@ function SurahView() {
               </svg>
               {t.quranReader.verseByVerse}
             </Link>
+
           </div>
         </div>
-      </div>
 
-      {/* Sticky nav: prev/next arrows only */}
-      <div className="sticky top-0 z-20 -mx-4 mb-4 border-b border-[var(--theme-border)] bg-[var(--theme-bg)] px-1 py-1 sm:-mx-6 sm:mb-6 sm:px-2">
-        <div className="flex items-center justify-between">
-          {chapterId > 1 ? (
+        {/* Prev / Next surah navigation (inside card) */}
+        <div className="mt-4 flex items-center justify-between border-t border-[var(--theme-border)]/30 pt-3">
+          {hasPrev ? (
             <Link
               to="/$surahId"
               params={{ surahId: String(chapterId - 1) }}
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[var(--theme-text-tertiary)] transition-colors hover:bg-[var(--theme-hover-bg)] hover:text-[var(--theme-text)]"
-              aria-label={t.nav.prevSurah}
+              className="flex items-center gap-1.5 text-[12px] font-medium text-[var(--theme-text-secondary)] transition-colors hover:text-[var(--theme-text)]"
             >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+              {getSurahName(chapters[chapterId - 2].id, chapters[chapterId - 2].translated_name.name, locale)}
             </Link>
-          ) : (
-            <span className="w-7 shrink-0" />
-          )}
-
-          <span className="text-[11px] font-medium tabular-nums text-[var(--theme-text-quaternary)]">
-            {getSurahName(chapter.id, chapter.translated_name.name, locale)}
-          </span>
-
-          <div className="flex shrink-0 items-center gap-0.5">
-            {viewMode === "mushaf" && (
-              <button
-                type="button"
-                onClick={toggleFullscreen}
-                aria-label={t.quranReader.fullscreen}
-                className="flex h-7 w-7 items-center justify-center rounded-lg transition-colors hover:bg-[var(--theme-hover-bg)]"
-                style={{ color: "var(--theme-text-tertiary)" }}
-              >
-                {fullscreenIcon}
-              </button>
-            )}
-            {chapterId < TOTAL_CHAPTERS ? (
-              <Link
-                to="/$surahId"
-                params={{ surahId: String(chapterId + 1) }}
-                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[var(--theme-text-tertiary)] transition-colors hover:bg-[var(--theme-hover-bg)] hover:text-[var(--theme-text)]"
-                aria-label={t.nav.nextSurah}
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-              </Link>
-            ) : (
-              <span className="w-7 shrink-0" />
-            )}
-          </div>
+          ) : <span />}
+          {hasNext ? (
+            <Link
+              to="/$surahId"
+              params={{ surahId: String(chapterId + 1) }}
+              className="flex items-center gap-1.5 text-[12px] font-medium text-[var(--theme-text-secondary)] transition-colors hover:text-[var(--theme-text)]"
+            >
+              {getSurahName(chapters[chapterId].id, chapters[chapterId].translated_name.name, locale)}
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+            </Link>
+          ) : <span />}
         </div>
       </div>
+
+      {/* Sticky nav: fullscreen only (mushaf mode) */}
+      {viewMode === "mushaf" && (
+        <div className="sticky top-0 z-20 -mx-4 mb-4 border-b border-[var(--theme-border)] bg-[var(--theme-bg)] px-1 py-1 sm:-mx-6 sm:mb-6 sm:px-2">
+          <div className="flex items-center justify-end">
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              aria-label={t.quranReader.fullscreen}
+              className="flex h-7 w-7 items-center justify-center rounded-lg transition-colors hover:bg-[var(--theme-hover-bg)]"
+              style={{ color: "var(--theme-text-tertiary)" }}
+            >
+              {fullscreenIcon}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Mushaf fullscreen container */}
       <div
@@ -435,34 +434,6 @@ function SurahView() {
           onTogglePlayPause={togglePlayPause}
           scrollToVerse={verseParam}
         />
-      </div>
-
-      {/* Prev/Next surah navigation */}
-      <div className="mt-10 flex items-center justify-between border-t border-[var(--theme-divider)]/40 pt-6">
-        {hasPrev ? (
-          <Link
-            to="/$surahId"
-            params={{ surahId: String(chapterId - 1) }}
-            className="text-[15px] font-medium text-primary-600 transition-colors hover:text-primary-700"
-
-          >
-            ← {t.quranReader.prevSurah}
-          </Link>
-        ) : (
-          <span />
-        )}
-        {hasNext ? (
-          <Link
-            to="/$surahId"
-            params={{ surahId: String(chapterId + 1) }}
-            className="text-[15px] font-medium text-primary-600 transition-colors hover:text-primary-700"
-
-          >
-            {t.quranReader.nextSurah} →
-          </Link>
-        ) : (
-          <span />
-        )}
       </div>
 
       {/* Surah picker overlay */}

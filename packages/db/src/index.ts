@@ -22,3 +22,8 @@ export {
   QuestRepository,
 } from "./quest-repository";
 export type { LessonProgressEntry, LearnConceptEntry, QuestProgressEntry } from "./schema";
+export type { AnnotationPageEntry, TextNoteEntry } from "./schema";
+export {
+  annotationRepository,
+  AnnotationRepository,
+} from "./annotation-repository";

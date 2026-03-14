@@ -1,11 +1,11 @@
 import { memorizationRepository } from "@mahfuz/db";
 import { db } from "@mahfuz/db";
-import type { MemorizationCardEntry, ReviewEntryRecord, SyncQueueRecord } from "@mahfuz/db";
 import type { ConfidenceLevel, QualityGrade, VerseKey } from "@mahfuz/shared/types";
 import { pushChanges, pullChanges } from "./sync-server-fns";
+import { getSyncTimestamp, setSyncTimestamp } from "./sync-metadata";
 import { usePreferencesStore } from "~/stores/usePreferencesStore";
-import { useReadingListStore } from "~/stores/useReadingListStore";
-import type { ReadingListItem } from "~/stores/useReadingListStore";
+import { useReadingList } from "~/stores/useReadingList";
+import type { ReadingListItem } from "~/stores/useReadingList";
 import { useReadingHistory } from "~/stores/useReadingHistory";
 
 type SyncStatus = "idle" | "syncing" | "error";
@@ -14,8 +14,7 @@ type SyncStatus = "idle" | "syncing" | "error";
 const PREFS_EXCLUDE_KEYS = new Set([
   "sidebarCollapsed",
   "hasSeenOnboarding",
-  "_syncUpdatedAt",
-  // All setter functions
+  // All setter functions (v2 createPreferenceStore names)
   "setArabicFont", "setViewMode", "setTheme", "toggleTranslation",
   "setSelectedTranslations", "setColorizeWords", "setColorPalette",
   "setNormalShowTranslation", "setNormalShowWordHover",
@@ -25,7 +24,7 @@ const PREFS_EXCLUDE_KEYS = new Set([
   "setNormalArabicFontSize", "setNormalTranslationFontSize",
   "setWbwArabicFontSize", "setMushafArabicFontSize",
   "setTextType", "setShowLearnTab", "setShowMemorizeTab",
-  "setSidebarCollapsed", "setHasSeenOnboarding", "_setSyncUpdatedAt",
+  "setSidebarCollapsed", "setHasSeenOnboarding",
 ]);
 
 function getPrefsData(): Record<string, unknown> {
@@ -125,21 +124,25 @@ export class SyncEngine {
         }
       }
 
+      // Read sync timestamps from centralized metadata
+      const prefsSyncTs = getSyncTimestamp("preferences");
+      const readingListSyncTs = getSyncTimestamp("readingList");
+      const readingHistorySyncTs = getSyncTimestamp("readingHistory");
+
       // Read Zustand store state for non-queue data
-      const prefsState = usePreferencesStore.getState();
-      const readingListState = useReadingListStore.getState();
+      const readingListState = useReadingList.getState();
       const readingHistoryState = useReadingHistory.getState();
 
       // Build preferences payload
       const prefsData = getPrefsData();
       const preferencesPayload =
-        prefsState._syncUpdatedAt > 0
-          ? { data: JSON.stringify(prefsData), updatedAt: prefsState._syncUpdatedAt }
+        prefsSyncTs > 0
+          ? { data: JSON.stringify(prefsData), updatedAt: prefsSyncTs }
           : undefined;
 
       // Build reading list payload
       const readingListPayload =
-        readingListState._syncUpdatedAt > 0
+        readingListSyncTs > 0
           ? readingListState.items.map((item) => ({
               id: `${this.userId}-${item.type}-${item.id}`,
               type: item.type,
@@ -147,19 +150,19 @@ export class SyncEngine {
               addedAt: item.addedAt,
               lastReadAt: item.lastReadAt,
               deleted: false,
-              updatedAt: readingListState._syncUpdatedAt,
+              updatedAt: readingListSyncTs,
             }))
           : undefined;
 
       // Build reading history payload
       const readingHistoryPayload =
-        readingHistoryState._syncUpdatedAt > 0
+        readingHistorySyncTs > 0
           ? {
               lastSurahId: readingHistoryState.lastSurahId,
               lastSurahName: readingHistoryState.lastSurahName,
               lastPageNumber: readingHistoryState.lastPageNumber,
               lastJuzNumber: readingHistoryState.lastJuzNumber,
-              updatedAt: readingHistoryState._syncUpdatedAt,
+              updatedAt: readingHistorySyncTs,
             }
           : undefined;
 
@@ -246,7 +249,7 @@ export class SyncEngine {
         await memorizationRepository.addBadge(this.userId, badge.badgeId);
       }
 
-      // ── Phase 6: Merge lesson progress (LWW) ──
+      // Merge lesson progress (LWW)
       for (const serverLP of pulled.lessonProgressItems) {
         const localLP = await db.lesson_progress
           .where("id")
@@ -268,7 +271,7 @@ export class SyncEngine {
         }
       }
 
-      // ── Phase 6: Merge learn concepts (LWW) ──
+      // Merge learn concepts (LWW)
       for (const serverLC of pulled.learnConcepts) {
         const localLC = await db.learn_concepts
           .where("id")
@@ -289,7 +292,7 @@ export class SyncEngine {
         }
       }
 
-      // ── Phase 6: Merge quest progress (LWW + wordsCorrect union) ──
+      // Merge quest progress (LWW + wordsCorrect union)
       for (const serverQP of pulled.questProgressItems) {
         const localQP = await db.quest_progress
           .where("id")
@@ -322,23 +325,21 @@ export class SyncEngine {
         }
       }
 
-      // ── Phase 6: Merge preferences (LWW) ──
+      // Merge preferences (LWW)
       if (pulled.preferences) {
-        const localUpdatedAt = usePreferencesStore.getState()._syncUpdatedAt;
+        const localUpdatedAt = getSyncTimestamp("preferences");
         if (pulled.preferences.updatedAt > localUpdatedAt) {
           const serverPrefs = JSON.parse(pulled.preferences.data);
-          // Apply server preferences to store (excluding device-specific and setters)
-          usePreferencesStore.getState()._setSyncUpdatedAt(pulled.preferences.updatedAt);
+          setSyncTimestamp("preferences", pulled.preferences.updatedAt);
           usePreferencesStore.setState({
             ...serverPrefs,
-            _syncUpdatedAt: pulled.preferences.updatedAt,
           });
         }
       }
 
-      // ── Phase 6: Merge reading list (LWW per item + soft delete) ──
+      // Merge reading list (LWW per item + soft delete)
       if (pulled.readingListItems.length > 0) {
-        const currentItems = useReadingListStore.getState().items;
+        const currentItems = useReadingList.getState().items;
         const itemMap = new Map<string, ReadingListItem>();
         for (const item of currentItems) {
           itemMap.set(`${item.type}-${item.id}`, item);
@@ -369,17 +370,19 @@ export class SyncEngine {
           const maxUpdatedAt = Math.max(
             ...pulled.readingListItems.map((i) => i.updatedAt),
           );
-          useReadingListStore.getState()._setItems(
+          setSyncTimestamp("readingList", maxUpdatedAt);
+          useReadingList.getState()._setItems(
             Array.from(itemMap.values()),
             maxUpdatedAt,
           );
         }
       }
 
-      // ── Phase 6: Merge reading history (LWW) ──
+      // Merge reading history (LWW)
       if (pulled.readingHistoryData) {
-        const localUpdatedAt = useReadingHistory.getState()._syncUpdatedAt;
+        const localUpdatedAt = getSyncTimestamp("readingHistory");
         if (pulled.readingHistoryData.updatedAt > localUpdatedAt) {
+          setSyncTimestamp("readingHistory", pulled.readingHistoryData.updatedAt);
           useReadingHistory.getState()._setAll(
             {
               lastSurahId: pulled.readingHistoryData.lastSurahId,

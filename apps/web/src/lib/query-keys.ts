@@ -2,8 +2,7 @@ import type { TextType } from "@mahfuz/shared/types";
 
 /**
  * Centralized query key constants.
- * Every TanStack Query cache key in the app MUST use these functions
- * to prevent key mismatch bugs between queryOptions and getQueryData.
+ * Every TanStack Query cache key MUST use these functions.
  */
 export const QUERY_KEYS = {
   // Chapters
@@ -42,4 +41,54 @@ export const QUERY_KEYS = {
 
   // Juz
   juzs: () => ["juzs"] as const,
+
+  // Memorization (Dexie-backed)
+  memorization: {
+    all: (userId: string) => ["memorization", userId] as const,
+    cards: (userId: string) => ["memorization", "cards", userId] as const,
+    dueCards: (userId: string) => ["memorization", "due-cards", userId] as const,
+    surahCards: (userId: string, surahId: number) =>
+      ["memorization", "surah-cards", userId, surahId] as const,
+    stats: (userId: string) => ["memorization", "stats", userId] as const,
+    goals: (userId: string) => ["memorization", "goals", userId] as const,
+    reviewsToday: (userId: string) =>
+      ["memorization", "reviews-today", userId] as const,
+    reviewDates: (userId: string) =>
+      ["memorization", "review-dates", userId] as const,
+  },
+
+  // Learn (Dexie-backed)
+  learn: {
+    all: (userId: string) => ["learn", userId] as const,
+    dashboard: (userId: string) => ["learn", "dashboard", userId] as const,
+    stageProgress: (userId: string, stageId: number) =>
+      ["learn", "stage-progress", userId, stageId] as const,
+    completedLessons: (userId: string) =>
+      ["learn", "completed-lessons", userId] as const,
+    concepts: (userId: string) => ["learn", "concepts", userId] as const,
+    sevapPoints: (userId: string) => ["learn", "sevap", userId] as const,
+  },
+
+  // Quest (Dexie-backed)
+  quest: {
+    all: (userId: string) => ["quest", userId] as const,
+    progress: (userId: string, questId: string) =>
+      ["quest", "progress", userId, questId] as const,
+    allProgress: (userId: string) =>
+      ["quest", "all-progress", userId] as const,
+  },
+
+  // Badges (Dexie-backed)
+  badges: {
+    all: (userId: string) => ["badges", userId] as const,
+  },
+
+  // Annotations (Dexie-backed, Focus Mode)
+  annotations: {
+    all: (userId: string) => ["annotations", userId] as const,
+    page: (userId: string, pageNumber: number) =>
+      ["annotations", "page", userId, pageNumber] as const,
+    textNotes: (userId: string, pageNumber: number) =>
+      ["annotations", "text-notes", userId, pageNumber] as const,
+  },
 } as const;

@@ -1,9 +1,6 @@
 /**
  * Static Quran data loader — reads from Tanzil.net JSON files.
- *
- * Meta (chapter list): statically imported at build time (31KB).
- * Surah text: client fetches static files; SSR reads from disk via
- * createIsomorphicFn (TanStack Start splits the implementations at build time).
+ * TanStack Query is the sole cache layer (no Map caches).
  */
 import type {
   TextType,
@@ -16,8 +13,6 @@ import type {
 import { createIsomorphicFn } from "@tanstack/react-start";
 import quranMetaJson from "../data/quran-meta.json";
 
-// ---------- Isomorphic JSON loader ----------
-
 const loadJsonFile = createIsomorphicFn()
   .client(async (publicPath: string) => {
     const resp = await fetch(publicPath);
@@ -25,7 +20,6 @@ const loadJsonFile = createIsomorphicFn()
     return resp.json();
   })
   .server(async (publicPath: string) => {
-    // 1. Try reading from disk (works in local dev)
     const { readFile } = await import("node:fs/promises");
     const { join } = await import("node:path");
     const candidates = [
@@ -40,7 +34,6 @@ const loadJsonFile = createIsomorphicFn()
         continue;
       }
     }
-    // 2. Fallback: fetch from CDN (Netlify — Lambda has no access to static files)
     const siteUrl = process.env.URL || process.env.DEPLOY_PRIME_URL;
     if (siteUrl) {
       const resp = await fetch(`${siteUrl}${publicPath}`);
@@ -49,50 +42,25 @@ const loadJsonFile = createIsomorphicFn()
     throw new Error(`[quran-data] Failed to load ${publicPath} from disk`);
   });
 
-// ---------- Cache ----------
-
-const surahCache = new Map<string, TanzilSurahData>();
-const versesCache = new Map<string, Verse[]>();
-
-// ---------- Loaders ----------
-
-/** Returns statically bundled Quran meta (chapters list). No async I/O. */
 export async function loadQuranMeta(): Promise<QuranMeta> {
   return quranMetaJson as unknown as QuranMeta;
 }
 
-/** Loads surah text. Client: fetches static file. SSR: reads from disk. */
 export async function loadSurahText(
   surahId: number,
-  textType: TextType
+  textType: TextType,
 ): Promise<TanzilSurahData> {
-  const key = `${textType}/${surahId}`;
-  const cached = surahCache.get(key);
-  if (cached) return cached;
-
-  const data = await loadJsonFile(`/quran/${textType}/${surahId}.json`);
-  surahCache.set(key, data);
-  return data;
+  return loadJsonFile(`/quran/${textType}/${surahId}.json`);
 }
 
-/** Loads and converts surah verses with caching. Avoids re-parsing. */
 export async function loadSurahVerses(
   surahId: number,
-  textType: TextType
+  textType: TextType,
 ): Promise<Verse[]> {
-  const key = `${textType}/${surahId}`;
-  const cached = versesCache.get(key);
-  if (cached) return cached;
-
   const data = await loadSurahText(surahId, textType);
-  const verses = tanzilToVerses(data, surahId, textType);
-  versesCache.set(key, verses);
-  return verses;
+  return tanzilToVerses(data, surahId, textType);
 }
 
-// ---------- Converters ----------
-
-/** Convert a StaticChapter from meta.json → the app's Chapter interface */
 export function staticChapterToChapter(sc: StaticChapter): Chapter {
   return {
     id: sc.id,
@@ -111,11 +79,10 @@ export function staticChapterToChapter(sc: StaticChapter): Chapter {
   };
 }
 
-/** Convert Tanzil surah data → Verse[] matching the app's Verse interface */
 export function tanzilToVerses(
   data: TanzilSurahData,
   surahId: number,
-  textType: TextType
+  textType: TextType,
 ): Verse[] {
   return data.verses.map((tv) => {
     const verse: Verse = {
@@ -134,7 +101,6 @@ export function tanzilToVerses(
     verse.text_uthmani = tv.t;
     verse.text_imlaei = tv.t;
 
-    // Generate synthetic words from text for memorization components
     const wordTexts = tv.t.split(/\s+/).filter(Boolean);
     verse.words = wordTexts.map((wt, idx) => ({
       id: surahId * 1000000 + tv.v * 1000 + idx + 1,
@@ -154,10 +120,9 @@ export function tanzilToVerses(
   });
 }
 
-/** Merge WBW word data into static verses (used when viewMode === "wordByWord") */
 export function mergeWbwIntoVerses(
   staticVerses: Verse[],
-  wbwVerses: Verse[] | undefined
+  wbwVerses: Verse[] | undefined,
 ): Verse[] {
   if (!wbwVerses?.length) return staticVerses;
 

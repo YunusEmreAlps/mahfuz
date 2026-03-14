@@ -10,7 +10,7 @@ interface I18nState {
 
 function detectLocale(): Locale {
   if (typeof navigator === "undefined") return "tr";
-  return navigator.language.startsWith("tr") ? "tr" : "en";
+  return navigator.language.startsWith("en") ? "en" : "tr";
 }
 
 export const useI18nStore = create<I18nState>()(

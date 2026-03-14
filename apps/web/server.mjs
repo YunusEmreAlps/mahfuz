@@ -116,6 +116,27 @@ async function sendWebResponse(res, webResponse) {
   res.end();
 }
 
+// Legacy redirects (migrated from Netlify config)
+const REDIRECTS = [
+  { from: /^\/surah\/(\d+)\/?$/, to: "/$1", status: 301 },
+  { from: /^\/surah\/?$/, to: "/browse", status: 301 },
+  { from: /^\/verse\/?$/, to: "/browse", status: 301 },
+];
+
+function tryRedirect(req, res) {
+  const url = new URL(req.url, `http://localhost:${PORT}`);
+  for (const rule of REDIRECTS) {
+    const match = url.pathname.match(rule.from);
+    if (match) {
+      const target = rule.to.replace(/\$(\d+)/g, (_, i) => match[i] || "");
+      res.writeHead(rule.status, { Location: target + url.search });
+      res.end();
+      return true;
+    }
+  }
+  return false;
+}
+
 async function main() {
   // Run Drizzle migrations on startup
   try {
@@ -154,10 +175,13 @@ async function main() {
 
   const server = createServer(async (req, res) => {
     try {
-      // 1. Try static files from dist/client/ (built assets + public/)
+      // 1. Legacy redirects
+      if (tryRedirect(req, res)) return;
+
+      // 2. Try static files from dist/client/ (built assets + public/)
       if (await tryServeStatic(req, res, clientDir)) return;
 
-      // 2. Forward to TanStack Start SSR handler
+      // 3. Forward to TanStack Start SSR handler
       const webRequest = toWebRequest(req);
       const webResponse = await handler(webRequest);
       await sendWebResponse(res, webResponse);

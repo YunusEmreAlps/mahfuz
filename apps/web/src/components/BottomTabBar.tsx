@@ -1,5 +1,4 @@
 import { Link, useMatches } from "@tanstack/react-router";
-import { usePreferencesStore } from "~/stores/usePreferencesStore";
 import { useTranslation } from "~/hooks/useTranslation";
 
 interface TabItem {
@@ -13,8 +12,6 @@ interface TabItem {
 
 export function BottomTabBar() {
   const { t } = useTranslation();
-  const showLearnTab = usePreferencesStore((s) => s.showLearnTab);
-  const showMemorizeTab = usePreferencesStore((s) => s.showMemorizeTab);
   const matches = useMatches();
 
   const currentPath = matches[matches.length - 1]?.fullPath ?? "";
@@ -30,18 +27,11 @@ export function BottomTabBar() {
       visible: true,
     },
     {
-      to: "/learn",
-      label: t.nav.learn,
-      icon: (active) => <GraduationIcon active={active} />,
-      matchPatterns: ["/learn"],
-      visible: showLearnTab,
-    },
-    {
-      to: "/memorize",
-      label: t.nav.memorize,
-      icon: (active) => <BrainIcon active={active} />,
-      matchPatterns: ["/memorize"],
-      visible: showMemorizeTab,
+      to: "/library",
+      label: t.nav.library,
+      icon: (active) => <LibraryIcon active={active} />,
+      matchPatterns: ["/library", "/learn", "/memorize"],
+      visible: true,
     },
     {
       to: "/settings",
@@ -109,50 +99,17 @@ function BookIcon({ active }: { active: boolean }) {
   );
 }
 
-function GraduationIcon({ active }: { active: boolean }) {
+function LibraryIcon({ active }: { active: boolean }) {
   if (active) {
     return (
       <svg className="h-6 w-6 text-primary-600" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M11.7 2.805a.75.75 0 01.6 0A60.65 60.65 0 0122.83 8.72a.75.75 0 01-.231 1.337 49.949 49.949 0 00-9.902 3.912l-.003.002-.34.18a.75.75 0 01-.707 0A50.009 50.009 0 007.5 12.174v-.224c0-.131.067-.248.172-.311a.75.75 0 01.573-.065 47.228 47.228 0 013.426 1.15.75.75 0 101.091-.302l-.37-.133V7.5c0-.108-.022-.217-.066-.316l-.01-.02a.75.75 0 00-.627-.457 60.567 60.567 0 00-1.882-.083c-.58 0-1.16.014-1.738.041a.75.75 0 01-.078-1.498 62.055 62.055 0 012.5-.09l.18.002a.75.75 0 01.076.002z" />
-        <path d="M12.971 1.816A5.23 5.23 0 0114.25 5.25v1.875c0 .207.084.407.232.554l.043.043-.174.076a51.386 51.386 0 00-3.86 1.963 49.636 49.636 0 00-3.86-1.963l-.174-.076.043-.043a.781.781 0 00.232-.554V5.25c0-1.246.434-2.39 1.16-3.288l.014-.017c.211-.267.452-.512.716-.733l.09-.072a.75.75 0 01.468-.164c.175 0 .34.06.473.164l.09.072c.264.22.505.466.716.733z" />
-        <path d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347" />
+        <path d="M12.378 1.602a.75.75 0 00-.756 0L3 6.632l9 5.25 9-5.25-8.622-5.03zM21.75 7.93l-9 5.25v9l8.628-5.032a.75.75 0 00.372-.648V7.93zM11.25 22.18v-9l-9-5.25v8.57a.75.75 0 00.372.648l8.628 5.033z" />
       </svg>
     );
   }
   return (
     <svg className="h-6 w-6 text-[var(--theme-text-tertiary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.438 60.438 0 00-.491 6.347A48.62 48.62 0 0112 20.904a48.62 48.62 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.636 50.636 0 00-2.658-.813A59.906 59.906 0 0112 3.493a59.903 59.903 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0112 13.489a50.702 50.702 0 017.74-3.342M12 13.489V21m0 0a7.5 7.5 0 003.75-6.488M12 21a7.5 7.5 0 01-3.75-6.488" />
-    </svg>
-  );
-}
-
-function BrainIcon({ active }: { active: boolean }) {
-  if (active) {
-    return (
-      <svg className="h-6 w-6 text-primary-600" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 2a1 1 0 0 0-1 1v.341C7.67 4.166 5 7.2 5 10.9c0 1.3.28 2.54.78 3.66L4.2 16.14a1 1 0 0 0 .6 1.76h2.28c1.3 1.28 3.06 2.1 5 2.1s3.6-.82 5-2.1h2.28a1 1 0 0 0 .6-1.76l-1.58-1.58c.5-1.12.78-2.36.78-3.66 0-3.7-2.67-6.734-6-7.559V3a1 1 0 0 0-1-1zm-2.5 6a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3zm5 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z" />
-      </svg>
-    );
-  }
-  return (
-    <svg className="h-6 w-6 text-[var(--theme-text-tertiary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9.5 9.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm5 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM12 2C7.58 2 4 5.58 4 10c0 1.5.33 2.92.93 4.2L3.2 15.93a1.5 1.5 0 0 0 1.06 2.57h1.82C7.5 20.02 9.6 21 12 21s4.5-.98 5.92-2.5h1.82a1.5 1.5 0 0 0 1.06-2.57l-1.73-1.73c.6-1.28.93-2.7.93-4.2 0-4.42-3.58-8-8-8z" />
-    </svg>
-  );
-}
-
-function HeadphonesIcon({ active }: { active: boolean }) {
-  if (active) {
-    return (
-      <svg className="h-6 w-6 text-primary-600" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M8.25 4.5a3.75 3.75 0 117.5 0v8.25a3.75 3.75 0 11-7.5 0V4.5z" />
-        <path d="M6 10.5a.75.75 0 01.75.75v1.5a5.25 5.25 0 1010.5 0v-1.5a.75.75 0 011.5 0v1.5a6.751 6.751 0 01-6 6.709v2.291h3a.75.75 0 010 1.5h-7.5a.75.75 0 010-1.5h3v-2.291a6.751 6.751 0 01-6-6.709v-1.5A.75.75 0 016 10.5z" />
-      </svg>
-    );
-  }
-  return (
-    <svg className="h-6 w-6 text-[var(--theme-text-tertiary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.009 9.009 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6M4.5 10.5v8.25A.75.75 0 005.25 19.5h13.5a.75.75 0 00.75-.75V10.5" />
     </svg>
   );
 }

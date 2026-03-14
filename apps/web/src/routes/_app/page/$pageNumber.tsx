@@ -21,6 +21,7 @@ import { AddToReadingListButton } from "~/components/browse/AddToReadingListButt
 import { useTranslatedVerses } from "~/hooks/useTranslatedVerses";
 import { useTranslation } from "~/hooks/useTranslation";
 import { getSurahName } from "~/lib/surah-name";
+import { FocusModeIcon } from "~/components/focus/FocusIcons";
 
 export const Route = createFileRoute("/_app/page/$pageNumber")({
   loader: ({ context, params }) => {
@@ -269,7 +270,12 @@ function MushafPageView() {
   const goPrev = useCallback(() => {
     if (hasPrev) navigate({ to: "/page/$pageNumber", params: { pageNumber: String(pageNum - 1) } });
   }, [hasPrev, pageNum, navigate]);
-  useSwipeNavigation(swipeContainerRef, { onSwipeLeft: goPrev, onSwipeRight: goNext });
+  // Disable swipe nav in mushaf mode — conflicts with scroll-snap between Arabic/Meal pages
+  const swipeEnabled = viewMode !== "mushaf";
+  useSwipeNavigation(swipeContainerRef, {
+    onSwipeLeft: swipeEnabled ? goPrev : () => {},
+    onSwipeRight: swipeEnabled ? goNext : () => {},
+  });
 
   const fullscreenIcon = (
     <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -331,6 +337,14 @@ function MushafPageView() {
               </svg>
               {isPlayingThisPage ? t.quranReader.pause : t.quranReader.listen}
             </button>
+            <Link
+              to="/focus/$pageNumber"
+              params={{ pageNumber: String(pageNum) }}
+              className="inline-flex items-center gap-1 rounded-full bg-[var(--theme-pill-bg)] px-3 py-1.5 text-[11px] font-medium text-[var(--theme-text-secondary)] transition-all hover:bg-[var(--theme-hover-bg)] active:scale-[0.97]"
+            >
+              <FocusModeIcon width={14} height={14} />
+              Focus
+            </Link>
             <AddToReadingListButton type="page" id={pageNum} />
           </div>
         </div>

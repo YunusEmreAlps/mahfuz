@@ -29,7 +29,6 @@ RUN pnpm turbo build --filter=@mahfuz/web
 FROM node:22-alpine AS runner
 WORKDIR /app
 
-# Only runtime deps needed
 RUN corepack enable && corepack prepare pnpm@9 --activate
 
 # Copy monorepo root for pnpm workspace resolution

@@ -1,7 +1,0 @@
-[build]
-  base = "apps/web"
-  command = "pnpm build"
-  publish = "dist/client"
-
-[build.environment]
-  NODE_VERSION = "22"

@@ -20,6 +20,7 @@ export const en = {
     profile: "Profile",
     openMenu: "Open menu",
     closeMenu: "Close menu",
+    library: "Library",
     scrollToTop: "Scroll to top",
     prevSurah: "Previous surah",
     nextSurah: "Next surah",
@@ -53,13 +54,24 @@ export const en = {
     tagline: "Open source Quran application",
   },
 
+  // Library
+  library: {
+    subtitle: "Courses, tracks, and memorization",
+    courses: "Courses",
+    tracks: "Tracks",
+    memorize: "Memorize",
+  },
+
   // Theme & Font
   theme: {
     settings: "Theme settings",
     light: "Light",
+    crystal: "Crystal",
     sepia: "Sepia",
     dark: "Dark",
     dimmed: "Night",
+    teal: "Teal",
+    black: "Black",
     colorizeWords: "Word Coloring",
     fontLabel: "Font",
   },
@@ -195,8 +207,9 @@ export const en = {
 
   // Browse
   browse: {
-    surahs: "Surahs",
+    surahs: "Surah",
     juzs: "Juz",
+    nuzul: "Revelation",
     pages: "Pages",
     index: "Index",
     searchSurah: "Search surah...",
@@ -206,6 +219,8 @@ export const en = {
     madinah: "Madani",
     sortOrder: "Order",
     sortRevelation: "Revelation",
+    topics: "Topics",
+    topicCount: "topics",
     reference: "references",
     topicIndex: "Topic Index",
     searchTopics: "Search topics...",
@@ -216,6 +231,20 @@ export const en = {
     dailyVerse: "Verse of the Day",
     shareVerse: "Share",
     quickAccess: "Quick Access",
+    surahTips: {
+      2: "The longest and most comprehensive surah",
+      12: "The most beautiful of stories",
+      18: "Recited on Fridays",
+      32: "Recited at Friday dawn prayer",
+      36: "The heart of the Quran",
+      48: "The glad tidings of victory",
+      55: "The bride of the Quran",
+      56: "The surah of wealth",
+      67: "Protects from the grave's torment",
+      78: "Opens the Amma juz",
+      112: "Equal to a third of the Quran",
+      114: "The surah of seeking refuge",
+    } as Record<number, string>,
   },
 
   // Continue Reading
@@ -236,6 +265,18 @@ export const en = {
     greetingMorning: "Good Morning",
     greetingAfternoon: "Good Afternoon",
     greetingEvening: "Good Evening",
+  },
+
+  // Bookmarks page
+  bookmarksPage: {
+    title: "Bookmarks",
+    empty: "No bookmarks yet",
+    emptyHint: "Follow surahs or bookmark verses while reading to find them here later",
+    removeAll: "Remove All",
+    removeAllConfirm: "Remove all bookmarks?",
+    verses: "{n} verses",
+    verse: "Verse",
+    goToVerse: "Go to verse",
   },
 
   // Settings
@@ -297,6 +338,11 @@ export const en = {
     translationSubtitle: "Show translation text",
     wordInfo: "Word Info",
     wordInfoSubtitle: "Tap a word for translation and pronunciation",
+    hoverTranslation: "Hover Translation",
+    hoverTranslationSubtitle: "Show word meaning on hover",
+    hoverTransliteration: "Hover Pronunciation",
+    hoverTransliterationSubtitle: "Show pronunciation on hover",
+    hoverTextSize: "Hover Text Size",
     transliterationLabel: "Transliteration",
     transliterationSubtitle: "Pronunciation guide",
     wordTranslationLabel: "Word Translation",
@@ -307,11 +353,12 @@ export const en = {
   toolbar: {
     decreaseSize: "Decrease",
     increaseSize: "Increase",
-    cycleTheme: "Cycle theme",
     sizeCategory: "Size",
     textCategory: "Text & Translation",
-    colorCategory: "Color & Theme",
-    mushafNote: "Translation is not shown in Mushaf mode",
+    fontCategory: "Font",
+    colorCategory: "Color",
+    mushafNote: "Translation is shown on a separate page",
+    mushafNoTranslation: "Select a translation from settings to see it here",
   },
 
   onboarding: {
@@ -383,12 +430,15 @@ export const en = {
       yavuz: "A widely read translation known for its plain and fluent Turkish.",
     },
     dataCredits: {
-      quranApi: "Open API used for verse texts, word-by-word data, transliteration and Diyanet translation.",
+      tanzil: "Source for Quran verse texts (Uthmani and Simple scripts). Licensed under Creative Commons BY 3.0.",
+      quranApi: "Open API used for word-by-word (WBW) data and transliteration.",
+      quranCdn: "Content delivery network serving verse and word-level Quran audio recitations.",
       quranJsonRepo: "JSON source for Ali Fikri Yavuz and Ömer Nasuhi Bilmen translations.",
     },
     fontCredits: {
       kfgqpc: "Mushaf typeface developed by the King Fahd Glorious Quran Printing Complex.",
-      googleFonts: "Amiri Quran, Amiri, Lateef, Noto Naskh Arabic, Noto Sans Arabic, Cairo, Tajawal, Reem Kufi, Noto Kufi Arabic, Playpen Sans Arabic, Mada, Gulzar and Mirza fonts.",
+      meQuran: "Arabic typeface styled after the Medina Mushaf, optimized for digital use.",
+      googleFonts: "Inter, Amiri Quran, Amiri, Lateef, Scheherazade New, Noto Naskh Arabic, Noto Sans Arabic, Cairo, Tajawal, Reem Kufi, Noto Kufi Arabic, Playpen Sans Arabic, Mada, Gulzar and Mirza fonts.",
     },
     issueLinks: {
       featureRequest: "Feature Request",
@@ -627,6 +677,11 @@ export const en = {
     verseLabel: "Verse",
     pauseVerseAudio: "Pause verse audio",
     playFromVerse: "Play from verse",
+    bookmarkVerse: "Bookmark verse",
+    bookmarkVerseRemove: "Remove bookmark",
+    shareVerse: "Share verse",
+    moreActions: "More actions",
+    goToVerseDetail: "Go to verse detail",
     viewModes: {
       normal: "Normal",
       wordByWord: "Word",
@@ -657,6 +712,7 @@ export const en = {
     backToLearn: "← Learn",
     lesson: "Lesson",
     lessons: "lessons",
+    locked: "Locked",
     exerciseCount: "exercise",
     exerciseCountPlural: "exercises",
     pointLabel: "Point",
@@ -1059,5 +1115,61 @@ export const en = {
   // Offline
   offline: {
     message: "You are offline. Showing cached data",
+  },
+
+  // Home
+  home: {
+    searchPlaceholder: "Search surah, verse or topic...",
+    exploreQuran: "Explore Quran",
+    learn: "Learn",
+    library: "Library",
+    lastRead: "Last Read",
+    resume: "Resume",
+    learnPreview: "Learn to Read Quran",
+    libraryPreview: "From Library",
+    viewAll: "View All",
+    stageCount: "{completed}/{total} lessons",
+    appsTitle: "Quran Apps",
+    comingSoon: "Coming Soon",
+    appLearn: "Learn Quran",
+    appLearnDesc: "Learn to read Arabic from scratch",
+    appMemorize: "Memorization",
+    appMemorizeDesc: "Spaced repetition surah memorization",
+    appTarteel: "Tarteel",
+    appTarteelDesc: "Recitation and tajweed checking",
+    appTafsir: "Tafsir",
+    appTafsirDesc: "Verse commentaries and explanations",
+  },
+
+  // Focus Mode
+  focus: {
+    title: "Focus Mode",
+    enterFocus: "Focus Mode",
+    exitFocus: "Exit Focus",
+    pen: "Pen",
+    highlighter: "Highlighter",
+    eraser: "Eraser",
+    undo: "Undo",
+    addNote: "Add Note",
+    deleteNote: "Delete Note",
+    saveNote: "Save",
+    cancelNote: "Cancel",
+    notePlaceholder: "Add a note...",
+    pageJump: "Go to Page",
+    searchSurah: "Search surah...",
+    mushafView: "Mushaf",
+    flowingView: "Flowing",
+    fontSize: "Font Size",
+    annotations: "Annotations",
+    showAnnotations: "Show Annotations",
+    hideAnnotations: "Hide Annotations",
+    page: "Page",
+    surah: "Surah",
+    juz: "Juz",
+    close: "Close",
+    verses: "verses",
+    colorRed: "Red",
+    colorBlue: "Blue",
+    colorBlack: "Black",
   },
 } as const satisfies Messages;

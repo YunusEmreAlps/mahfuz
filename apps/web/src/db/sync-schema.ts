@@ -105,6 +105,48 @@ export const readingListItem = sqliteTable(
   ],
 );
 
+/** Annotation pages (strokes per Quran page, Focus Mode) */
+export const annotationPage = sqliteTable(
+  "annotation_page",
+  {
+    id: text("id").primaryKey(), // "${userId}:${pageNumber}"
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    pageNumber: integer("page_number").notNull(),
+    strokes: text("strokes").notNull().default("[]"), // JSON
+    deleted: integer("deleted").notNull().default(0),
+    updatedAt: integer("updated_at").notNull(),
+  },
+  (table) => [
+    uniqueIndex("ap_user_page_idx").on(table.userId, table.pageNumber),
+  ],
+);
+
+/** Text notes on verses (Focus Mode) */
+export const textNote = sqliteTable(
+  "text_note",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    verseKey: text("verse_key").notNull(),
+    pageNumber: integer("page_number").notNull(),
+    content: text("content").notNull(),
+    color: text("color").notNull().default("#dc2626"),
+    positionX: real("position_x").notNull().default(0.5),
+    positionY: real("position_y").notNull().default(0.5),
+    deleted: integer("deleted").notNull().default(0),
+    createdAt: integer("created_at").notNull(),
+    updatedAt: integer("updated_at").notNull(),
+  },
+  (table) => [
+    index("tn_user_page_idx").on(table.userId, table.pageNumber),
+    index("tn_user_verse_idx").on(table.userId, table.verseKey),
+  ],
+);
+
 /** Reading history (last position per user) */
 export const readingHistory = sqliteTable("reading_history", {
   userId: text("user_id")

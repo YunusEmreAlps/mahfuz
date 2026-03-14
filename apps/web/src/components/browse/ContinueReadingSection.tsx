@@ -21,7 +21,7 @@ export function ContinueReadingSection() {
           {items.length}
         </span>
       </div>
-      <div className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto px-5 pb-2 scrollbar-none sm:-mx-6 sm:px-6">
+      <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 scrollbar-none">
         {items.map((item) => (
           <ReadingListCard
             key={`${item.type}-${item.id}`}

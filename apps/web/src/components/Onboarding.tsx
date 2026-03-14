@@ -13,14 +13,18 @@ import { useAudioStore } from "~/stores/useAudioStore";
 import { CURATED_RECITERS } from "@mahfuz/shared/constants";
 import { ReciterModal } from "~/components/audio/ReciterModal";
 import { Dialog, DialogContent, DialogTitle } from "~/components/ui/Dialog";
+import { MahfuzLogo } from "~/components/icons";
 
 const TOTAL_STEPS = 4;
 
 const THEMES: { value: Theme; color: string; border: string }[] = [
   { value: "light", color: "#ffffff", border: "#d2d2d7" },
+  { value: "crystal", color: "#ffffff", border: "#007AFF" },
   { value: "sepia", color: "#f5ead6", border: "#d4b882" },
   { value: "dark", color: "#1a1a1a", border: "#444" },
   { value: "dimmed", color: "#22272e", border: "#444c56" },
+  { value: "teal", color: "#1c3f44", border: "#2a5a60" },
+  { value: "black", color: "#000000", border: "#333" },
 ];
 
 // Top 6 fonts across groups for the onboarding grid
@@ -97,13 +101,7 @@ export function Onboarding() {
           >
             {/* Step 1: Welcome */}
             <div className="w-full shrink-0 p-8 text-center">
-              <img
-                src="/images/mahfuz-logo.png"
-                alt="Mahfuz"
-                width={47}
-                height={56}
-                className="mx-auto mb-4 h-14"
-              />
+              <MahfuzLogo branded size={56} className="mx-auto mb-4" />
               <h2 className="mb-2 text-[20px] font-semibold text-[var(--theme-text)]">
                 {t.onboarding.welcomeTitle}
               </h2>
@@ -142,7 +140,7 @@ export function Onboarding() {
                   >
                     <span
                       className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all ${theme === th.value ? "border-primary-600 ring-2 ring-primary-600/30" : "border-[var(--theme-divider)]"}`}
-                      style={{ backgroundColor: th.color }}
+                      style={{ backgroundColor: th.color, boxShadow: th.value === "crystal" ? "inset 0 0 0 2px #007AFF" : undefined }}
                     >
                       {theme === th.value && (
                         <svg
@@ -150,9 +148,11 @@ export function Onboarding() {
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke={
-                            th.value === "dark" || th.value === "dimmed"
+                            ["dark", "dimmed", "teal", "black"].includes(th.value)
                               ? "#e5e5e5"
-                              : "#059669"
+                              : th.value === "crystal"
+                                ? "#007AFF"
+                                : "#059669"
                           }
                           strokeWidth={2.5}
                         >
@@ -165,11 +165,7 @@ export function Onboarding() {
                       )}
                     </span>
                     <span className="text-[10px] text-[var(--theme-text-tertiary)]">
-                      {
-                        t.theme[
-                          th.value as "light" | "sepia" | "dark" | "dimmed"
-                        ]
-                      }
+                      {t.theme[th.value as Theme]}
                     </span>
                   </button>
                 ))}

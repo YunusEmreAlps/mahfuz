@@ -18,6 +18,7 @@ export const tr = {
     profile: "Profil",
     openMenu: "Menüyü aç",
     closeMenu: "Menüyü kapat",
+    library: "Kütüphane",
     scrollToTop: "Yukarı dön",
     prevSurah: "Önceki sure",
     nextSurah: "Sonraki sure",
@@ -51,13 +52,24 @@ export const tr = {
     tagline: "Açık kaynak Kuran-ı Kerim uygulaması",
   },
 
+  // Library
+  library: {
+    subtitle: "Kurslar, patikalar ve ezber çalışmaları",
+    courses: "Kurslar",
+    tracks: "Patikalar",
+    memorize: "Ezber",
+  },
+
   // Theme & Font
   theme: {
     settings: "Tema ayarları",
     light: "Açık",
+    crystal: "Kristal",
     sepia: "Sepia",
     dark: "Koyu",
     dimmed: "Gece",
+    teal: "Teal",
+    black: "Siyah",
     colorizeWords: "Kelime Renklendirme",
     fontLabel: "Yazı tipi",
   },
@@ -193,8 +205,9 @@ export const tr = {
 
   // Browse
   browse: {
-    surahs: "Sureler",
-    juzs: "Cüzler",
+    surahs: "Sure",
+    juzs: "Cüz",
+    nuzul: "Nüzul",
     pages: "Sayfalar",
     index: "Fihrist",
     searchSurah: "Sure ara...",
@@ -204,6 +217,8 @@ export const tr = {
     madinah: "Medenî",
     sortOrder: "Tertip",
     sortRevelation: "Nüzul",
+    topics: "Konular",
+    topicCount: "konu",
     reference: "referans",
     topicIndex: "Konu Fihristi",
     searchTopics: "Konu ara...",
@@ -214,6 +229,20 @@ export const tr = {
     dailyVerse: "Günün Ayeti",
     shareVerse: "Paylaş",
     quickAccess: "Hızlı Erişim",
+    surahTips: {
+      2: "En uzun ve en kapsamlı sure",
+      12: "Kıssaların en güzeli",
+      18: "Cuma günü okunan sure",
+      32: "Cuma sabahı okunan sure",
+      36: "Kur'an'ın kalbi",
+      48: "Zafer müjdesi",
+      55: "Kur'an'ın gelini",
+      56: "Zenginlik suresi",
+      67: "Kabir azabından koruyucu",
+      78: "Amme cüzünün ilk suresi",
+      112: "Kur'an'ın üçte biri",
+      114: "Sığınma suresi",
+    } as Record<number, string>,
   },
 
   // Continue Reading
@@ -234,6 +263,18 @@ export const tr = {
     greetingMorning: "Hayırlı Sabahlar",
     greetingAfternoon: "Hayırlı Öğleler",
     greetingEvening: "Hayırlı Akşamlar",
+  },
+
+  // Bookmarks page
+  bookmarksPage: {
+    title: "Yer İmleri",
+    empty: "Henüz yer imi yok",
+    emptyHint: "Sureleri takip edin veya ayetleri yer imlerine ekleyin, buradan kolayca ulaşın",
+    removeAll: "Tümünü Kaldır",
+    removeAllConfirm: "Tüm yer imleri kaldırılsın mı?",
+    verses: "{n} ayet",
+    verse: "Ayet",
+    goToVerse: "Ayete git",
   },
 
   // Settings
@@ -295,6 +336,11 @@ export const tr = {
     translationSubtitle: "Meal metnini göster",
     wordInfo: "Kelime Bilgisi",
     wordInfoSubtitle: "Kelimeye dokununca çeviri ve okunuş",
+    hoverTranslation: "Hover Çeviri",
+    hoverTranslationSubtitle: "Kelimenin anlamını göster",
+    hoverTransliteration: "Hover Okunuş",
+    hoverTransliterationSubtitle: "Kelimenin okunuşunu göster",
+    hoverTextSize: "Hover Metin Boyutu",
     transliterationLabel: "Transliterasyon",
     transliterationSubtitle: "Okunuş rehberi",
     wordTranslationLabel: "Kelime Çevirisi",
@@ -306,11 +352,12 @@ export const tr = {
   toolbar: {
     decreaseSize: "Küçült",
     increaseSize: "Büyüt",
-    cycleTheme: "Tema değiştir",
     sizeCategory: "Boyut",
     textCategory: "Yazım & Çeviri",
-    colorCategory: "Renk & Tema",
-    mushafNote: "Mushaf modunda çeviri gösterilmez",
+    fontCategory: "Yazı Tipi",
+    colorCategory: "Renk",
+    mushafNote: "Çeviri ayrı sayfada gösterilir",
+    mushafNoTranslation: "Çeviriyi görmek için ayarlardan bir çeviri seçin",
   },
 
   // Onboarding
@@ -383,12 +430,15 @@ export const tr = {
       yavuz: "Sade ve akıcı Türkçesiyle bilinen, geniş okuyucu kitlesine ulaşmış meal çalışması.",
     },
     dataCredits: {
-      quranApi: "Ayet metinleri, kelime kelime veriler, transliterasyon ve Diyanet meali için kullanılan açık API.",
+      tanzil: "Kur'an-ı Kerim ayet metinlerinin (Uthmani ve Basit hat) kaynağı. Creative Commons BY 3.0 lisansı ile sunulmaktadır.",
+      quranApi: "Kelime kelime (WBW) veriler ve transliterasyon için kullanılan açık API.",
+      quranCdn: "Ayet ve kelime bazlı sesli Kur'an okuma dosyalarının sunulduğu içerik dağıtım ağı.",
       quranJsonRepo: "Ali Fikri Yavuz ve Ömer Nasuhi Bilmen meallerinin JSON formatındaki kaynağı.",
     },
     fontCredits: {
       kfgqpc: "King Fahd Glorious Quran Printing Complex tarafından geliştirilen Mushaf yazı tipi.",
-      googleFonts: "Amiri Quran, Amiri, Lateef, Noto Naskh Arabic, Noto Sans Arabic, Cairo, Tajawal, Reem Kufi, Noto Kufi Arabic, Playpen Sans Arabic, Mada, Gulzar ve Mirza yazı tipleri.",
+      meQuran: "Medine Mushafı stilinde, dijital ortama uygun Arapça yazı tipi.",
+      googleFonts: "Inter, Amiri Quran, Amiri, Lateef, Scheherazade New, Noto Naskh Arabic, Noto Sans Arabic, Cairo, Tajawal, Reem Kufi, Noto Kufi Arabic, Playpen Sans Arabic, Mada, Gulzar ve Mirza yazı tipleri.",
     },
     issueLinks: {
       featureRequest: "Geliştirme Talebi",
@@ -627,6 +677,11 @@ export const tr = {
     verseLabel: "Ayet",
     pauseVerseAudio: "Ayet kaydını duraklat",
     playFromVerse: "Ayetten dinle",
+    bookmarkVerse: "Ayeti yer imlerine ekle",
+    bookmarkVerseRemove: "Yer iminden kaldır",
+    shareVerse: "Ayeti paylaş",
+    moreActions: "Daha fazla",
+    goToVerseDetail: "Ayet detayına git",
     viewModes: {
       normal: "Normal",
       wordByWord: "Kelime",
@@ -657,6 +712,7 @@ export const tr = {
     backToLearn: "← Öğren",
     lesson: "Ders",
     lessons: "ders",
+    locked: "Kilitli",
     exerciseCount: "alıştırma",
     exerciseCountPlural: "alıştırma",
     pointLabel: "Puan",
@@ -1059,6 +1115,62 @@ export const tr = {
   // Offline
   offline: {
     message: "Çevrimdışısınız. Önbellek verileri gösteriliyor",
+  },
+
+  // Home
+  home: {
+    searchPlaceholder: "Sure, ayet veya konu ara...",
+    exploreQuran: "Kuran'ı Keşfet",
+    learn: "Öğren",
+    library: "Kütüphane",
+    lastRead: "En Son Okunan",
+    resume: "Devam Et",
+    learnPreview: "Kuran Okumayı Öğren",
+    libraryPreview: "Kütüphaneden",
+    viewAll: "Tümünü Gör",
+    stageCount: "{completed}/{total} ders",
+    appsTitle: "Kuran Uygulamaları",
+    comingSoon: "Yakında",
+    appLearn: "Kuran Öğrenme",
+    appLearnDesc: "Sıfırdan Arapça okumayı öğren",
+    appMemorize: "Ezberleme",
+    appMemorizeDesc: "Tekrarlı ezber sistemi ile sureler",
+    appTarteel: "Tarteel",
+    appTarteelDesc: "Sesli okuma ve tecvid kontrolü",
+    appTafsir: "Tefsir",
+    appTafsirDesc: "Ayet yorumları ve açıklamalar",
+  },
+
+  // Focus Mode
+  focus: {
+    title: "Odak Modu",
+    enterFocus: "Odak Modu",
+    exitFocus: "Odaktan Çık",
+    pen: "Kalem",
+    highlighter: "İşaretleyici",
+    eraser: "Silgi",
+    undo: "Geri Al",
+    addNote: "Not Ekle",
+    deleteNote: "Notu Sil",
+    saveNote: "Kaydet",
+    cancelNote: "İptal",
+    notePlaceholder: "Not ekle...",
+    pageJump: "Sayfaya Git",
+    searchSurah: "Sure ara...",
+    mushafView: "Mushaf",
+    flowingView: "Akış",
+    fontSize: "Yazı Boyutu",
+    annotations: "Notlar",
+    showAnnotations: "Notları Göster",
+    hideAnnotations: "Notları Gizle",
+    page: "Sayfa",
+    surah: "Sure",
+    juz: "Cüz",
+    close: "Kapat",
+    verses: "ayet",
+    colorRed: "Kırmızı",
+    colorBlue: "Mavi",
+    colorBlack: "Siyah",
   },
 } as const;
 

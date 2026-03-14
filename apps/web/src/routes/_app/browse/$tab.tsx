@@ -1,28 +1,24 @@
 import { createFileRoute, useNavigate, redirect } from "@tanstack/react-router";
-import { Suspense, useMemo } from "react";
+import { Suspense } from "react";
 import { chaptersQueryOptions } from "~/hooks/useChapters";
 import { juzListQueryOptions } from "~/hooks/useJuz";
 import { Loading } from "~/components/ui/Loading";
 import { Skeleton } from "~/components/ui/Skeleton";
-import { SegmentedControl } from "~/components/ui/SegmentedControl";
+
 import { SurahListPanel } from "~/components/browse/SurahListPanel";
 import { JuzListPanel } from "~/components/browse/JuzListPanel";
-import { PageListPanel } from "~/components/browse/PageListPanel";
-import { FihristPanel } from "~/components/browse/FihristPanel";
 import { useTranslation } from "~/hooks/useTranslation";
 import { ContinueReadingSection } from "~/components/browse/ContinueReadingSection";
 import { DailyVerseCard } from "~/components/browse/DailyVerseCard";
 import { QuickAccessSection } from "~/components/browse/QuickAccessSection";
-import { useReadingListStore } from "~/stores/useReadingListStore";
+import { TopicBand } from "~/components/browse/TopicBand";
+import { HeroSection } from "~/components/home/HeroSection";
 
 
-const VALID_TABS = ["surahs", "juzs", "pages", "index"] as const;
+const VALID_TABS = ["surahs", "juzs", "nuzul"] as const;
 type TabType = (typeof VALID_TABS)[number];
 
 export const Route = createFileRoute("/_app/browse/$tab")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    topic: typeof search.topic === "string" ? search.topic : undefined,
-  }),
   beforeLoad: ({ params }) => {
     if (!VALID_TABS.includes(params.tab as TabType)) {
       throw redirect({ to: "/browse/surahs" });
@@ -54,34 +50,17 @@ export const Route = createFileRoute("/_app/browse/$tab")({
   component: BrowsePage,
 });
 
-function getGreeting(t: ReturnType<typeof useTranslation>["t"]) {
-  const h = new Date().getHours();
-  if (h < 12) return t.continueReading.greetingMorning;
-  if (h < 17) return t.continueReading.greetingAfternoon;
-  return t.continueReading.greetingEvening;
-}
-
 function BrowsePage() {
   const { tab } = Route.useParams();
-  const { topic } = Route.useSearch();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const hasItems = useReadingListStore((s) => s.items.length > 0);
   const currentTab = tab as TabType;
 
   const TAB_OPTIONS = [
     { value: "surahs" as TabType, label: t.browse.surahs },
     { value: "juzs" as TabType, label: t.browse.juzs },
-    { value: "pages" as TabType, label: t.browse.pages },
-    { value: "index" as TabType, label: t.browse.index },
+    { value: "nuzul" as TabType, label: t.browse.nuzul },
   ];
-
-  const TAB_TITLES: Record<TabType, string> = {
-    surahs: t.browse.surahs,
-    juzs: t.browse.juzs,
-    pages: t.browse.pages,
-    index: t.browse.index,
-  };
 
   const setTab = (value: TabType) => {
     navigate({
@@ -91,44 +70,59 @@ function BrowsePage() {
     });
   };
 
-  const greeting = useMemo(() => getGreeting(t), [t]);
+  const { session } = Route.useRouteContext();
 
   return (
     <div className="mx-auto max-w-[960px] px-5 py-5 sm:px-6 sm:py-10 lg:max-w-[1200px]">
+      {/* Hero — search + nav pills */}
+      <HeroSection userName={session?.user?.name?.split(" ")[0]} />
+
       {/* Daily Verse */}
       <DailyVerseCard />
 
-      {/* Greeting + Continue Reading */}
-      {hasItems && (
-        <p className="mb-1 text-[13px] font-medium text-[var(--theme-text-tertiary)]">
-          {greeting}
-        </p>
-      )}
+      {/* Continue Reading */}
       <ContinueReadingSection />
 
       {/* Quick Access */}
       <QuickAccessSection />
 
-      <h1 className="mb-5 text-[24px] font-semibold tracking-[-0.02em] text-[var(--theme-text)] sm:mb-6 sm:text-[28px]">
-        {TAB_TITLES[currentTab]}
-      </h1>
+      {/* Topic Band — Fihrist categories */}
+      <Suspense>
+        <TopicBand />
+      </Suspense>
 
-      {/* Tabs */}
-      <div className="mb-5 sm:mb-6">
-        <SegmentedControl
-          options={TAB_OPTIONS}
-          value={currentTab}
-          onChange={setTab}
-          stretch
-        />
+      {/* Tabs — sticky underline style */}
+      <div className="sticky top-0 z-10 mb-5 border-b border-[var(--theme-border)] bg-[var(--theme-bg)] sm:mb-6">
+        <nav className="flex gap-0" role="tablist">
+          {TAB_OPTIONS.map((opt) => {
+            const active = currentTab === opt.value;
+            return (
+              <button
+                key={opt.value}
+                role="tab"
+                aria-selected={active}
+                onClick={() => setTab(opt.value)}
+                className={`relative px-4 py-3 text-[14px] font-medium transition-colors ${
+                  active
+                    ? "text-[var(--theme-text)]"
+                    : "text-[var(--theme-text-tertiary)] hover:text-[var(--theme-text-secondary)]"
+                }`}
+              >
+                {opt.label}
+                {active && (
+                  <span className="absolute inset-x-1 bottom-0 h-[2px] rounded-full bg-primary-600" />
+                )}
+              </button>
+            );
+          })}
+        </nav>
       </div>
 
       {/* Tab content */}
       <Suspense fallback={<Loading text={t.common.loading} />}>
         {currentTab === "surahs" && <SurahListPanel />}
         {currentTab === "juzs" && <JuzListPanel />}
-        {currentTab === "pages" && <PageListPanel />}
-        {currentTab === "index" && <FihristPanel initialTopic={topic} />}
+        {currentTab === "nuzul" && <SurahListPanel sort="revelation" />}
       </Suspense>
     </div>
   );

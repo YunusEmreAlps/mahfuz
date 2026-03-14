@@ -1,43 +1,69 @@
 import { createFileRoute, Outlet, Link, useRouter, useMatches, useLocation } from "@tanstack/react-router";
-import { useState, useEffect, useRef, useCallback, useSyncExternalStore } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, useSyncExternalStore } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { signOut } from "~/lib/auth-client";
-import { AudioProvider, AudioBar } from "~/components/audio";
+import { AudioBar } from "~/components/audio/AudioBar";
+import { AudioProvider } from "~/components/audio/AudioProvider";
 import { BottomTabBar } from "~/components/BottomTabBar";
 import { DesktopSidebar } from "~/components/DesktopSidebar";
 import { useAudioStore } from "~/stores/useAudioStore";
 import { usePreferencesStore } from "~/stores/usePreferencesStore";
+import { THEME_OPTIONS } from "~/lib/constants";
+import { useSyncStore } from "~/stores/useSyncStore";
 import { CommandPalette } from "~/components/CommandPalette";
 import { HeaderSurahPicker } from "~/components/HeaderSurahPicker";
 import { Dialog } from "~/components/ui/Dialog";
 import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/Popover";
 import { TooltipProvider } from "~/components/ui/Tooltip";
-import { SyncIndicator } from "~/components/ui/SyncIndicator";
 import { useTranslation } from "~/hooks/useTranslation";
-import { useSyncStore } from "~/stores/useSyncStore";
+import { signOut } from "~/lib/auth-client";
 import { SyncEngine } from "~/lib/sync-engine";
+import { SyncIndicator } from "~/components/ui/SyncIndicator";
 import type { Chapter } from "@mahfuz/shared/types";
 import { TOTAL_PAGES } from "@mahfuz/shared/constants";
 import { QUERY_KEYS } from "~/lib/query-keys";
 import { getSurahName } from "~/lib/surah-name";
+import { useVerseBookmarks } from "~/stores/useVerseBookmarks";
 import { Onboarding } from "~/components/Onboarding";
+import { ReadingToolbar } from "~/components/quran/ReadingToolbar";
+import { MahfuzLogo } from "~/components/icons";
+import { useFontLoader } from "~/hooks/useFontLoader";
 
 export const Route = createFileRoute("/_app")({
   component: AppLayout,
+  notFoundComponent: () => (
+    <div className="flex flex-col items-center justify-center py-20 text-center">
+      <p className="text-lg font-semibold text-[var(--theme-text)]">404</p>
+      <p className="mt-1 text-[14px] text-[var(--theme-text-secondary)]">
+        Sayfa bulunamadı
+      </p>
+      <Link
+        to="/browse"
+        className="mt-4 rounded-xl bg-primary-600 px-6 py-2.5 text-[14px] font-medium text-white hover:bg-primary-700"
+      >
+        Ana Sayfaya Dön
+      </Link>
+    </div>
+  ),
 });
 
 const NAV_ITEMS = [
   { to: "/browse", labelKey: "mahfuz" as const, icon: BookIcon },
-  { to: "/learn", labelKey: "learn" as const, icon: GraduationIcon },
-  { to: "/memorize", labelKey: "memorization" as const, icon: BrainIcon },
+  { to: "/library", labelKey: "library" as const, icon: LibraryIcon },
   { to: "/audio", labelKey: "audio" as const, icon: HeadphonesIcon },
 ] as const;
 
 function AppLayout() {
+  useFontLoader();
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
-  const { session } = Route.useRouteContext();
+  const [bookmarksOpen, setBookmarksOpen] = useState(false);
+  const verseBookmarks = useVerseBookmarks((s) => s.bookmarks);
+  const recentBookmarks = useMemo(
+    () => [...verseBookmarks].sort((a, b) => b.addedAt - a.addedAt).slice(0, 5),
+    [verseBookmarks],
+  );
   const router = useRouter();
+  const { session } = Route.useRouteContext();
   const audioVisible = useAudioStore((s) => s.isVisible);
   const matches = useMatches();
   const queryClient = useQueryClient();
@@ -46,6 +72,8 @@ function AppLayout() {
   const sidebarCollapsedRaw = usePreferencesStore((s) => s.sidebarCollapsed);
   const setSidebarCollapsed = usePreferencesStore((s) => s.setSidebarCollapsed);
   const hasSeenOnboarding = usePreferencesStore((s) => s.hasSeenOnboarding);
+  const theme = usePreferencesStore((s) => s.theme);
+  const setTheme = usePreferencesStore((s) => s.setTheme);
 
   // Prevent SSR/client hydration mismatch: sidebar collapsed until client mounts
   const hasMounted = useSyncExternalStore(
@@ -54,6 +82,32 @@ function AppLayout() {
     () => false,
   );
   const sidebarCollapsed = !hasMounted || sidebarCollapsedRaw;
+
+  // Sync engine: start on auth, stop on logout/unmount
+  const syncSetStatus = useSyncStore((s) => s.setStatus);
+  const syncLastSyncAt = useSyncStore((s) => s.lastSyncAt);
+  const syncSetLastSyncAt = useSyncStore((s) => s.setLastSyncAt);
+
+  useEffect(() => {
+    const userId = session?.user?.id;
+    if (!userId) return;
+
+    const engine = new SyncEngine(userId, syncLastSyncAt ?? 0, (status, error) => {
+      syncSetStatus(status, error);
+      if (status === "idle") {
+        syncSetLastSyncAt(engine.getLastSyncAt());
+      }
+    });
+    engine.start();
+    return () => engine.stop();
+    // Only re-run when userId changes, not on every syncLastSyncAt update
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user?.id]);
+
+  const handleSignOut = useCallback(async () => {
+    await signOut();
+    await router.invalidate();
+  }, [router]);
 
   // Global Cmd+K / Ctrl+K shortcut
   useEffect(() => {
@@ -67,29 +121,12 @@ function AppLayout() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Sync engine: start when authenticated
-  const syncSetStatus = useSyncStore((s) => s.setStatus);
-  const syncLastSyncAt = useSyncStore((s) => s.lastSyncAt);
-  const syncEngineRef = useRef<SyncEngine | null>(null);
-
+  // Custom event: open palette from child components (e.g. homepage search bar)
   useEffect(() => {
-    const userId = session?.user?.id;
-    if (!userId) {
-      syncEngineRef.current?.stop();
-      syncEngineRef.current = null;
-      return;
-    }
-
-    const engine = new SyncEngine(userId, syncLastSyncAt || 0, (status, error) => {
-      syncSetStatus(status as any, error);
-    });
-    syncEngineRef.current = engine;
-    engine.start();
-
-    return () => {
-      engine.stop();
-    };
-  }, [session?.user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+    const handleOpenPalette = () => setPaletteOpen(true);
+    document.addEventListener("mahfuz:open-palette", handleOpenPalette);
+    return () => document.removeEventListener("mahfuz:open-palette", handleOpenPalette);
+  }, []);
 
   // Detect surah page and get chapter info from cache
   const surahMatch = matches.find((m) => m.routeId === "/_app/$surahId/" || m.routeId === "/_app/$surahId/$verseNum");
@@ -129,23 +166,21 @@ function AppLayout() {
     mainRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  const handleSignOut = async () => {
-    await signOut();
-    await router.invalidate();
-    router.navigate({ to: "/" });
-  };
-
   return (
     <TooltipProvider delayDuration={300}>
     <div className="flex h-screen flex-col bg-[var(--theme-bg)]">
+      {/* Dev banner */}
+      <div className="flex items-center justify-center bg-emerald-600 px-4 py-1.5 text-center text-[12px] font-medium text-white sm:text-[13px]">
+        ✨ Güzel bir Kur'an deneyimi için özenle çalışıyoruz. Eksikler ve değişiklikler olabilir, hoş görünüze sığınırız.
+      </div>
       {/* Header */}
       <header className="glass sticky top-0 z-30 h-[56px] border-b border-[var(--theme-border)] px-3 sm:px-6 lg:h-[64px]">
         <div className="relative flex h-full items-center justify-between">
           {/* Left: Logo + Chapter/page context */}
           <div className="flex min-w-0 items-center gap-1">
             {/* Logo */}
-            <Link to="/browse" className="mr-1.5 flex shrink-0 items-center gap-2 sm:mr-3">
-              <img src="/images/mahfuz-logo.png" alt="Mahfuz" width={37} height={44} className="h-10 w-auto lg:h-11" />
+            <Link to="/" className="mr-1.5 flex shrink-0 items-center gap-2 sm:mr-3">
+              <MahfuzLogo className="h-10 w-auto lg:h-11" />
               <span className="hidden text-[17px] font-semibold tracking-tight text-[var(--theme-text)] sm:inline">
                 Mahfuz
               </span>
@@ -274,27 +309,115 @@ function AppLayout() {
             ))}
           </nav>
 
-          {/* Right: Search + Settings + User + Menu */}
+          {/* Right: Search + Settings */}
           <div className="flex items-center gap-1">
-            <Link
-              to="/bookmarks"
-              className="hidden items-center justify-center rounded-lg p-1.5 text-[var(--theme-text-secondary)] transition-colors hover:bg-[var(--theme-hover-bg)] hover:text-[var(--theme-text)] lg:flex"
-              activeProps={{
-                className:
-                  "hidden items-center justify-center rounded-lg p-1.5 text-primary-700 bg-primary-600/10 transition-colors lg:flex",
-              }}
-              title={t.nav.bookmarks}
-            >
-              <BookmarkIcon />
-            </Link>
-            {/* Desktop search */}
-            <button
-              onClick={() => setPaletteOpen(true)}
-              className="hidden items-center justify-center rounded-lg p-1.5 text-[var(--theme-text-secondary)] transition-colors hover:bg-[var(--theme-hover-bg)] hover:text-[var(--theme-text)] lg:flex"
-              aria-label={t.nav.search}
-            >
-              <SearchIcon />
-            </button>
+            {/* Bookmarks popover */}
+            <Popover open={bookmarksOpen} onOpenChange={setBookmarksOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className={`relative hidden items-center justify-center rounded-lg p-1.5 transition-colors lg:flex ${
+                    bookmarksOpen
+                      ? "bg-primary-600/10 text-primary-700"
+                      : "text-[var(--theme-text-secondary)] hover:bg-[var(--theme-hover-bg)] hover:text-[var(--theme-text)]"
+                  }`}
+                  title={t.nav.bookmarks}
+                >
+                  <BookmarkIcon />
+                  {verseBookmarks.length > 0 && (
+                    <span className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-primary-600 text-[8px] font-bold text-white">
+                      {verseBookmarks.length > 9 ? "9+" : verseBookmarks.length}
+                    </span>
+                  )}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-64 overflow-hidden rounded-xl p-0">
+                {recentBookmarks.length === 0 ? (
+                  <div className="px-4 py-5 text-center">
+                    <p className="text-[12px] text-[var(--theme-text-tertiary)]">{t.bookmarksPage.empty}</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="max-h-[240px] overflow-y-auto py-1">
+                      {recentBookmarks.map((bm) => {
+                        const [surah, verse] = bm.verseKey.split(":");
+                        const ch = allChapters?.find((c) => c.id === Number(surah));
+                        const name = ch ? getSurahName(ch.id, ch.translated_name.name, locale) : surah;
+                        return (
+                          <Link
+                            key={bm.verseKey}
+                            to="/$surahId"
+                            params={{ surahId: surah }}
+                            search={{ verse: Number(verse) }}
+                            onClick={() => setBookmarksOpen(false)}
+                            className="flex items-center gap-2.5 px-3 py-2 text-left transition-colors hover:bg-[var(--theme-hover-bg)]"
+                          >
+                            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-600/10 text-[10px] font-semibold tabular-nums text-primary-600">
+                              {verse}
+                            </span>
+                            <span className="min-w-0 flex-1 truncate text-[12px] font-medium text-[var(--theme-text)]">
+                              {name}
+                            </span>
+                            <span className="text-[10px] tabular-nums text-[var(--theme-text-quaternary)]">
+                              {surah}:{verse}
+                            </span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                    <Link
+                      to="/bookmarks"
+                      onClick={() => setBookmarksOpen(false)}
+                      className="flex items-center justify-center border-t border-[var(--theme-border)] px-3 py-2 text-[11px] font-medium text-primary-600 transition-colors hover:bg-[var(--theme-hover-bg)]"
+                    >
+                      {t.home.viewAll}
+                    </Link>
+                  </>
+                )}
+              </PopoverContent>
+            </Popover>
+            {/* Desktop reading toolbar */}
+            <div className="hidden lg:flex">
+              <ReadingToolbar />
+            </div>
+
+            {/* Theme switcher popover */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className="hidden items-center justify-center rounded-lg p-1.5 text-[var(--theme-text-secondary)] transition-colors hover:bg-[var(--theme-hover-bg)] hover:text-[var(--theme-text)] lg:flex"
+                  title={t.theme.settings}
+                >
+                  <ThemeIcon />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-auto p-2">
+                <div className="flex gap-1.5">
+                  {THEME_OPTIONS.map((opt) => {
+                    const active = theme === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setTheme(opt.value)}
+                        className={`flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all ${
+                          active ? "border-primary-600 scale-110" : "border-transparent hover:scale-105"
+                        }`}
+                        style={{ backgroundColor: opt.color, boxShadow: `inset 0 0 0 1px ${opt.border}` }}
+                        title={(t.theme as Record<string, string>)[opt.value]}
+                      >
+                        {active && (
+                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke={["dark", "dimmed", "teal", "black"].includes(opt.value) ? "#e5e5e5" : opt.value === "crystal" ? "#007AFF" : "#059669"} strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </PopoverContent>
+            </Popover>
 
             {/* Desktop settings gear */}
             <Link
@@ -309,29 +432,25 @@ function AppLayout() {
               <SettingsIcon />
             </Link>
 
+            {/* Auth: avatar or login */}
             {session ? (
-              <div className="ml-1 hidden items-center gap-1 lg:flex">
+              <div className="hidden items-center gap-1.5 lg:flex">
                 <SyncIndicator />
-                <Link
-                  to="/profile"
-                  className="flex items-center gap-2 rounded-full px-2 py-1 transition-colors hover:bg-[var(--theme-hover-bg)]"
-                >
+                <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-primary-100 text-[13px] font-semibold text-primary-700">
                   {session.user.image ? (
                     <img
                       src={session.user.image}
                       alt={session.user.name}
-                      className="h-6 w-6 rounded-full object-cover"
+                      className="h-full w-full object-cover"
                     />
                   ) : (
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-[10px] font-semibold text-primary-700">
-                      {session.user.name?.charAt(0)?.toUpperCase() || "?"}
-                    </span>
+                    session.user.name?.charAt(0).toUpperCase() || "U"
                   )}
-                </Link>
+                </div>
                 <button
                   onClick={handleSignOut}
                   className="rounded-lg p-1.5 text-[var(--theme-text-tertiary)] transition-colors hover:bg-[var(--theme-hover-bg)] hover:text-[var(--theme-text)]"
-                  aria-label={t.nav.signOut}
+                  title={t.auth.signOut}
                 >
                   <LogOutIcon />
                 </button>
@@ -339,9 +458,9 @@ function AppLayout() {
             ) : (
               <Link
                 to="/auth/login"
-                className="ml-1 hidden rounded-full bg-primary-600 px-4 py-1 text-xs font-medium text-white transition-all hover:bg-primary-700 active:scale-[0.97] lg:inline-block"
+                className="hidden items-center rounded-full bg-primary-600 px-3.5 py-1.5 text-[13px] font-medium text-white transition-all hover:bg-primary-700 active:scale-[0.97] lg:flex"
               >
-                {t.nav.login}
+                {t.auth.login}
               </Link>
             )}
 
@@ -447,8 +566,6 @@ function AppLayout() {
 
 // -- Icons (simple inline SVG) --
 
-// -- Icons (simple inline SVG) --
-
 function ChevronLeftIcon() {
   return (
     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -473,11 +590,10 @@ function BookIcon() {
   );
 }
 
-
-function BrainIcon() {
+function LibraryIcon() {
   return (
     <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M9.5 9.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm5 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM12 2C7.58 2 4 5.58 4 10c0 1.5.33 2.92.93 4.2L3.2 15.93a1.5 1.5 0 0 0 1.06 2.57h1.82C7.5 20.02 9.6 21 12 21s4.5-.98 5.92-2.5h1.82a1.5 1.5 0 0 0 1.06-2.57l-1.73-1.73c.6-1.28.93-2.7.93-4.2 0-4.42-3.58-8-8-8z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6M4.5 10.5v8.25A.75.75 0 005.25 19.5h13.5a.75.75 0 00.75-.75V10.5" />
     </svg>
   );
 }
@@ -506,6 +622,14 @@ function HeadphonesIcon() {
   );
 }
 
+function ThemeIcon() {
+  return (
+    <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4.098 19.902a3.75 3.75 0 005.304 0l6.401-6.402M6.75 21A3.75 3.75 0 013 17.25V4.125C3 3.504 3.504 3 4.125 3h5.25c.621 0 1.125.504 1.125 1.125v4.072M6.75 21a3.75 3.75 0 003.75-3.75V8.197M6.75 21h13.125c.621 0 1.125-.504 1.125-1.125v-5.25c0-.621-.504-1.125-1.125-1.125h-4.072M10.5 8.197l2.88-2.88c.438-.439 1.15-.439 1.59 0l3.712 3.713c.44.44.44 1.152 0 1.59l-2.879 2.88M6.75 17.25h.008v.008H6.75v-.008z" />
+    </svg>
+  );
+}
+
 function SettingsIcon() {
   return (
     <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -523,13 +647,3 @@ function LogOutIcon() {
     </svg>
   );
 }
-
-
-function GraduationIcon() {
-  return (
-    <svg className="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.438 60.438 0 00-.491 6.347A48.62 48.62 0 0112 20.904a48.62 48.62 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.636 50.636 0 00-2.658-.813A59.906 59.906 0 0112 3.493a59.903 59.903 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0112 13.489a50.702 50.702 0 017.74-3.342M12 13.489V21m0 0a7.5 7.5 0 003.75-6.488M12 21a7.5 7.5 0 01-3.75-6.488" />
-    </svg>
-  );
-}
-

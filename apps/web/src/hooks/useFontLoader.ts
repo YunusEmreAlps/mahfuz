@@ -19,9 +19,12 @@ function injectGoogleFont(url: string) {
 
 const THEME_META_COLORS: Record<string, string> = {
   light: "#059669",
+  crystal: "#007AFF",
   sepia: "#8b7332",
   dark: "#1a1a1a",
   dimmed: "#22272e",
+  teal: "#1c3f44",
+  black: "#000000",
 };
 
 export function useFontLoader() {
@@ -31,6 +34,7 @@ export function useFontLoader() {
   const normalTranslationFontSize = usePreferencesStore((s) => s.normalTranslationFontSize);
   const wbwArabicFontSize = usePreferencesStore((s) => s.wbwArabicFontSize);
   const mushafArabicFontSize = usePreferencesStore((s) => s.mushafArabicFontSize);
+  const mushafTranslationFontSize = usePreferencesStore((s) => s.mushafTranslationFontSize);
   const theme = usePreferencesStore((s) => s.theme);
 
   useEffect(() => {
@@ -41,7 +45,7 @@ export function useFontLoader() {
     }
 
     const arabicFontSize = getArabicFontSizeForMode({ viewMode, normalArabicFontSize, wbwArabicFontSize, mushafArabicFontSize });
-    const translationFontSize = getTranslationFontSizeForMode({ viewMode, normalTranslationFontSize });
+    const translationFontSize = getTranslationFontSizeForMode({ viewMode, normalTranslationFontSize, mushafTranslationFontSize });
 
     const html = document.documentElement;
     html.style.setProperty(
@@ -53,7 +57,7 @@ export function useFontLoader() {
       "--translation-font-scale",
       String(translationFontSize),
     );
-  }, [arabicFontId, viewMode, normalArabicFontSize, normalTranslationFontSize, wbwArabicFontSize, mushafArabicFontSize]);
+  }, [arabicFontId, viewMode, normalArabicFontSize, normalTranslationFontSize, wbwArabicFontSize, mushafArabicFontSize, mushafTranslationFontSize]);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);

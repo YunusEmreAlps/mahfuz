@@ -51,7 +51,6 @@ interface PushPayload {
     reviewCardsPerDay: number;
     updatedAt: number;
   };
-  // Phase 6 additions
   lessonProgressItems?: Array<{
     id: string;
     stageId: number;
@@ -144,7 +143,6 @@ interface PullResponse {
     totalSevapPoint: number;
     updatedAt: number;
   } | null;
-  // Phase 6 additions
   lessonProgressItems: Array<{
     id: string;
     stageId: number;
@@ -298,7 +296,7 @@ export const pushChanges = createServerFn({ method: "POST" })
         });
     }
 
-    // ── Phase 6: Lesson progress (LWW) ──
+    // Lesson progress (LWW)
     if (data.lessonProgressItems) {
       for (const item of data.lessonProgressItems) {
         const existing = await db
@@ -341,7 +339,7 @@ export const pushChanges = createServerFn({ method: "POST" })
       }
     }
 
-    // ── Phase 6: Learn concepts (LWW) ──
+    // Learn concepts (LWW)
     if (data.learnConcepts) {
       for (const item of data.learnConcepts) {
         const existing = await db
@@ -382,7 +380,7 @@ export const pushChanges = createServerFn({ method: "POST" })
       }
     }
 
-    // ── Phase 6: Quest progress (LWW + wordsCorrect union) ──
+    // Quest progress (LWW + wordsCorrect union)
     if (data.questProgressItems) {
       for (const item of data.questProgressItems) {
         const existing = await db
@@ -437,7 +435,7 @@ export const pushChanges = createServerFn({ method: "POST" })
       }
     }
 
-    // ── Phase 6: Preferences (LWW blob) ──
+    // Preferences (LWW blob)
     if (data.preferences) {
       const existing = await db
         .select({ updatedAt: userPreferences.updatedAt })
@@ -463,7 +461,7 @@ export const pushChanges = createServerFn({ method: "POST" })
       }
     }
 
-    // ── Phase 6: Reading list items (LWW per item + soft delete) ──
+    // Reading list items (LWW per item + soft delete)
     if (data.readingListItems) {
       for (const item of data.readingListItems) {
         const existing = await db
@@ -508,7 +506,7 @@ export const pushChanges = createServerFn({ method: "POST" })
       }
     }
 
-    // ── Phase 6: Reading history (LWW) ──
+    // Reading history (LWW)
     if (data.readingHistoryData) {
       const existing = await db
         .select({ updatedAt: readingHistory.updatedAt })
@@ -590,7 +588,6 @@ export const pullChanges = createServerFn({ method: "GET" })
       .where(eq(userStats.userId, userId))
       .get();
 
-    // Phase 6 queries
     const lessonProgressRows = await db
       .select()
       .from(lessonProgress)
@@ -685,7 +682,6 @@ export const pullChanges = createServerFn({ method: "GET" })
             updatedAt: statsRow.updatedAt,
           }
         : null,
-      // Phase 6
       lessonProgressItems: lessonProgressRows.map((r) => ({
         id: r.id,
         stageId: r.stageId,

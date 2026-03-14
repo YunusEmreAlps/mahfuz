@@ -11,7 +11,6 @@ export default defineConfig({
   plugins: [
     tsConfigPaths(),
     tanstackStart(),
-    // React's vite plugin must come after Start's vite plugin
     viteReact(),
     tailwindcss(),
   ],

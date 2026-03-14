@@ -1,5 +1,5 @@
-import { useRef, useEffect, useCallback } from "react";
-import { useWindowVirtualizer } from "@tanstack/react-virtual";
+import { useRef, useEffect, useCallback, useState } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import type { Verse } from "@mahfuz/shared/types";
 import { AyahText } from "./AyahText";
 import { Bismillah } from "./Bismillah";
@@ -49,13 +49,29 @@ function VirtualizedVerseList({
   scrollToVerse,
 }: Omit<VerseListProps, "viewMode"> & { showBismillah: boolean }) {
   const listRef = useRef<HTMLDivElement>(null);
+  const [scrollElement, setScrollElement] = useState<HTMLElement | null>(null);
 
-  const virtualizer = useWindowVirtualizer({
+  // Find the nearest scrollable ancestor (the <main> with overflow-y: auto)
+  useEffect(() => {
+    let el = listRef.current?.parentElement ?? null;
+    while (el) {
+      const style = getComputedStyle(el);
+      if (style.overflowY === "auto" || style.overflowY === "scroll") {
+        setScrollElement(el);
+        return;
+      }
+      el = el.parentElement;
+    }
+    // Fallback: use documentElement (window scroll)
+    setScrollElement(document.documentElement);
+  }, []);
+
+  const virtualizer = useVirtualizer({
     count: verses.length,
     estimateSize: () => 240,
-    overscan: 3,
+    overscan: 5,
     getItemKey: (index) => verses[index].id,
-    scrollMargin: listRef.current?.offsetTop ?? 0,
+    getScrollElement: () => scrollElement,
   });
 
   // Scroll to a specific verse when scrollToVerse changes
@@ -107,7 +123,7 @@ function VirtualizedVerseList({
                 top: 0,
                 left: 0,
                 width: "100%",
-                transform: `translateY(${virtualRow.start - virtualizer.options.scrollMargin}px)`,
+                transform: `translateY(${virtualRow.start}px)`,
               }}
             >
               <div>
