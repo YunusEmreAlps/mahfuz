@@ -24,6 +24,7 @@ import { QUERY_KEYS } from "~/lib/query-keys";
 import { getSurahName } from "~/lib/surah-name";
 import { useVerseBookmarks } from "~/stores/useVerseBookmarks";
 import { Onboarding } from "~/components/Onboarding";
+import { InstallPrompt } from "~/components/ui/InstallPrompt";
 import { ReadingToolbar } from "~/components/quran/ReadingToolbar";
 import { MahfuzLogo } from "~/components/icons";
 import { useFontLoader } from "~/hooks/useFontLoader";
@@ -559,6 +560,7 @@ function AppLayout() {
       <AudioBar />
       <BottomTabBar />
       {!hasSeenOnboarding && <Onboarding />}
+      <InstallPrompt />
     </div>
     </TooltipProvider>
   );
