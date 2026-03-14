@@ -150,7 +150,8 @@ React Components (Zustand for UI state)
 
 ### Data Sources
 
-- **[Quran.com API](https://quran.com).** Verse text, word-by-word data, transliteration, and Diyanet translation.
+- **[Tanzil.net](https://tanzil.net).** Quran verse texts in Uthmani and Simple scripts. Licensed under Creative Commons BY 3.0.
+- **[Quran.com API](https://quran.com).** Word-by-word data, transliteration, and Diyanet translation.
 - **[Kuran Meali Ebook Oluşturucu](https://github.com/alialparslan/Kuran-Meali-Ebook-Olusturucu)** by alialparslan. Ali Fikri Yavuz and Ömer Nasuhi Bilmen translations in JSON format.
 
 ### Fonts
