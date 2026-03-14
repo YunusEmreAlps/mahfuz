@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
-/* FOUC guard: body starts hidden (inline <style> sets opacity:0),
-   this rule overrides it once Tailwind CSS has loaded */
-body { opacity: 1; }
+/* FOUC guard: splash overlay covers unstyled content;
+   hide it once Tailwind CSS has loaded */
+.mahfuz-splash { display: none !important; }
 
 @theme {
   --color-primary-50: #ecfdf5;
