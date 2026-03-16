@@ -1,16 +1,24 @@
 import { tr } from "./tr";
-import { en } from "./en";
-import { es } from "./es";
-import type { LocaleConfig } from "./types";
+import type { LocaleConfig, Messages } from "./types";
 
 /**
  * Central locale registry.
  *
+ * Default locale (tr) is always bundled. Other complete locales (en, es) are
+ * loaded dynamically on first use to reduce initial bundle size.
+ *
  * To add a new language:
  *   1. Create `locales/<code>/index.ts` exporting translations
- *   2. Add an entry here
+ *   2. Add an entry here (with a loader if complete)
  *   3. Done — Locale type auto-extends, UI picks it up
  */
+
+/** Dynamic loaders for non-default complete locales */
+const localeLoaders: Record<string, () => Promise<Messages>> = {
+  en: () => import("./en").then((m) => m.en),
+  es: () => import("./es").then((m) => m.es),
+};
+
 const registry = {
   tr: {
     messages: tr,
@@ -20,14 +28,14 @@ const registry = {
     complete: true,
   },
   en: {
-    messages: en,
+    messages: {} as Messages,
     displayName: "English",
     dir: "ltr",
     bcp47: "en",
     complete: true,
   },
   es: {
-    messages: es,
+    messages: {} as Messages,
     displayName: "Español",
     dir: "ltr",
     bcp47: "es",
@@ -164,4 +172,31 @@ export function getLocaleConfig(locale: Locale): LocaleConfig {
 /** Get all locale configs as `[code, config]` pairs. */
 export function getAllLocaleConfigs(): { code: Locale; config: LocaleConfig }[] {
   return LOCALE_CODES.map((code) => ({ code, config: registry[code] }));
+}
+
+/**
+ * Load messages for a locale dynamically.
+ * Returns immediately for tr (always bundled) and already-loaded locales.
+ * Triggers async load for en/es on first access.
+ */
+export async function loadLocaleMessages(locale: Locale): Promise<Messages> {
+  const config = registry[locale];
+
+  // tr is always bundled
+  if (locale === "tr") return config.messages as Messages;
+
+  // Already loaded (messages object has keys)
+  if (Object.keys(config.messages).length > 0) return config.messages as Messages;
+
+  // Dynamic load
+  const loader = localeLoaders[locale];
+  if (loader) {
+    const messages = await loader();
+    // Cache into registry so subsequent calls are sync
+    (registry[locale] as { messages: Messages | Record<string, never> }).messages = messages;
+    return messages;
+  }
+
+  // Incomplete locale — return empty (will be merged with tr fallback)
+  return config.messages as Messages;
 }

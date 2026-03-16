@@ -40,6 +40,13 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      {
+        rel: "preload",
+        href: "/fonts/KFGQPCUthmanicScriptHAFS.woff2",
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
       { rel: "manifest", href: "/manifest.json" },
       { rel: "apple-touch-icon", href: "/icons/apple-touch-icon.png" },
       { rel: "icon", type: "image/png", sizes: "32x32", href: "/icons/favicon-32.png" },
@@ -53,18 +60,28 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 
 function RootLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
-    migrateV1ToV2();
+    const run = () => migrateV1ToV2();
+    if ("requestIdleCallback" in window) {
+      requestIdleCallback(run);
+    } else {
+      setTimeout(run, 0);
+    }
   }, []);
 
   useEffect(() => {
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js");
+      const register = () => navigator.serviceWorker.register("/sw.js");
+      if ("requestIdleCallback" in window) {
+        requestIdleCallback(register);
+      } else {
+        setTimeout(register, 2000);
+      }
     }
   }, []);
 
   return (
     <html lang="tr">
-      <head>
+      <head suppressHydrationWarning>
         {/* Inline critical CSS: splash overlay covers unstyled content until Tailwind loads */}
         <style dangerouslySetInnerHTML={{ __html: SPLASH_CSS }} />
         <HeadContent />

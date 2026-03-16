@@ -14,4 +14,24 @@ export default defineConfig({
     viteReact(),
     tailwindcss(),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules/react/") || id.includes("node_modules/react-dom/")) {
+            return "react";
+          }
+          if (id.includes("@tanstack/")) {
+            return "tanstack";
+          }
+          if (id.includes("@radix-ui/")) {
+            return "radix";
+          }
+          if (id.includes("drizzle-orm") || id.includes("better-auth") || id.includes("@libsql/")) {
+            return "db-auth";
+          }
+        },
+      },
+    },
+  },
 });

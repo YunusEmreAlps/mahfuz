@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet, Link, useRouter, useMatches, useLocation } from "@tanstack/react-router";
-import { useState, useEffect, useRef, useCallback, useMemo, useSyncExternalStore } from "react";
+import { lazy, Suspense, useState, useEffect, useRef, useCallback, useMemo, useSyncExternalStore } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { AudioBar } from "~/components/audio/AudioBar";
 import { AudioProvider } from "~/components/audio/AudioProvider";
@@ -9,28 +9,29 @@ import { useAudioStore } from "~/stores/useAudioStore";
 import { usePreferencesStore } from "~/stores/usePreferencesStore";
 import { THEME_OPTIONS } from "~/lib/constants";
 import { useSyncStore } from "~/stores/useSyncStore";
-import { CommandPalette } from "~/components/CommandPalette";
 import { HeaderSurahPicker } from "~/components/HeaderSurahPicker";
 import { Dialog } from "~/components/ui/Dialog";
 import { Popover, PopoverTrigger, PopoverContent } from "~/components/ui/Popover";
 import { TooltipProvider } from "~/components/ui/Tooltip";
 import { useTranslation } from "~/hooks/useTranslation";
 import { signOut } from "~/lib/auth-client";
-import { SyncEngine } from "~/lib/sync-engine";
 import { SyncIndicator } from "~/components/ui/SyncIndicator";
 import type { Chapter } from "@mahfuz/shared/types";
 import { TOTAL_PAGES } from "@mahfuz/shared/constants";
 import { QUERY_KEYS } from "~/lib/query-keys";
 import { getSurahName } from "~/lib/surah-name";
 import { useVerseBookmarks } from "~/stores/useVerseBookmarks";
-import { Onboarding } from "~/components/Onboarding";
-import { InstallPrompt } from "~/components/ui/InstallPrompt";
 import { ReadingToolbar } from "~/components/quran/ReadingToolbar";
 import { MahfuzLogo } from "~/components/icons";
 import { useFontLoader } from "~/hooks/useFontLoader";
 import { useI18nStore } from "~/stores/useI18nStore";
 import { getAllLocaleConfigs, getLocaleConfig } from "~/locales/registry";
 import type { Locale } from "~/locales/registry";
+
+// Lazy-loaded heavy components
+const CommandPalette = lazy(() => import("~/components/CommandPalette").then(m => ({ default: m.CommandPalette })));
+const Onboarding = lazy(() => import("~/components/Onboarding").then(m => ({ default: m.Onboarding })));
+const InstallPrompt = lazy(() => import("~/components/ui/InstallPrompt").then(m => ({ default: m.InstallPrompt })));
 
 export const Route = createFileRoute("/_app")({
   component: AppLayout,
@@ -56,6 +57,28 @@ const NAV_ITEMS = [
   { to: "/discover", labelKey: "discover" as const, icon: DiscoverIcon },
   { to: "/audio", labelKey: "audio" as const, icon: HeadphonesIcon },
 ] as const;
+
+function Avatar({ name, image }: { name?: string | null; image?: string | null }) {
+  const [failed, setFailed] = useState(false);
+  const initial = name?.charAt(0).toUpperCase() || "U";
+
+  return (
+    <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-primary-100 text-[13px] font-semibold text-primary-700">
+      {image && !failed ? (
+        <img
+          src={image}
+          alt={name || ""}
+          width={32}
+          height={32}
+          className="h-full w-full object-cover"
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        initial
+      )}
+    </div>
+  );
+}
 
 function AppLayout() {
   useFontLoader();
@@ -98,15 +121,25 @@ function AppLayout() {
   useEffect(() => {
     const userId = session?.user?.id;
     if (!userId) return;
+    let destroyed = false;
+    let engineRef: { stop(): void } | null = null;
 
-    const engine = new SyncEngine(userId, syncLastSyncAt ?? 0, (status, error) => {
-      syncSetStatus(status, error);
-      if (status === "idle") {
-        syncSetLastSyncAt(engine.getLastSyncAt());
-      }
+    import("~/lib/sync-engine").then(({ SyncEngine }) => {
+      if (destroyed) return;
+      const engine = new SyncEngine(userId, syncLastSyncAt ?? 0, (status: string, error?: string) => {
+        syncSetStatus(status, error);
+        if (status === "idle") {
+          syncSetLastSyncAt(engine.getLastSyncAt());
+        }
+      });
+      engineRef = engine;
+      engine.start();
     });
-    engine.start();
-    return () => engine.stop();
+
+    return () => {
+      destroyed = true;
+      engineRef?.stop();
+    };
     // Only re-run when userId changes, not on every syncLastSyncAt update
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user?.id]);
@@ -486,19 +519,7 @@ function AppLayout() {
             {session ? (
               <div className="hidden items-center gap-1.5 lg:flex">
                 <SyncIndicator />
-                <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-primary-100 text-[13px] font-semibold text-primary-700">
-                  {session.user.image ? (
-                    <img
-                      src={session.user.image}
-                      alt={session.user.name}
-                      width={32}
-                      height={32}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    session.user.name?.charAt(0).toUpperCase() || "U"
-                  )}
-                </div>
+                <Avatar name={session.user.name} image={session.user.image} />
                 <button
                   onClick={handleSignOut}
                   className="rounded-lg p-1.5 text-[var(--theme-text-tertiary)] transition-colors hover:bg-[var(--theme-hover-bg)] hover:text-[var(--theme-text)]"
@@ -555,9 +576,11 @@ function AppLayout() {
         </div>
       )}
       <Dialog open={paletteOpen} onOpenChange={setPaletteOpen}>
-        {paletteOpen && (
-          <CommandPalette onClose={() => setPaletteOpen(false)} />
-        )}
+        <Suspense fallback={null}>
+          {paletteOpen && (
+            <CommandPalette onClose={() => setPaletteOpen(false)} />
+          )}
+        </Suspense>
       </Dialog>
 
       {/* Desktop sidebar + Page content */}
@@ -610,8 +633,8 @@ function AppLayout() {
       <AudioProvider />
       <AudioBar />
       <BottomTabBar />
-      {!hasSeenOnboarding && <Onboarding />}
-      <InstallPrompt />
+      <Suspense fallback={null}>{!hasSeenOnboarding && <Onboarding />}</Suspense>
+      <Suspense fallback={null}><InstallPrompt /></Suspense>
     </div>
     </TooltipProvider>
   );
