@@ -1,9 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import type {
   MemorizationCard,
   MemorizationStats,
-  QualityGrade,
   ConfidenceLevel,
   VerseKey,
 } from "@mahfuz/shared/types";
@@ -14,8 +12,11 @@ import {
   memorizationRepository,
   type MemorizationCardEntry,
 } from "@mahfuz/db";
-import { useMemorizationStore, type SessionType } from "~/stores/useMemorizationStore";
-import { verseByKeyQueryOptions } from "./useVerses";
+import {
+  useMemorizationStore,
+  gradeFromAccuracy,
+  type ModeResult,
+} from "~/stores/useMemorizationStore";
 
 // Helpers
 function entryToCard(e: MemorizationCardEntry): MemorizationCard {
@@ -51,7 +52,6 @@ export function useMemorizationDashboard(userId: string | undefined) {
     if (!userId) return;
     setIsLoading(true);
     try {
-      // Clean up any duplicate cards (same verseKey)
       await memorizationRepository.deduplicateCards(userId);
       const allCards = await memorizationRepository.getAllCards(userId);
       const cards = allCards.map(entryToCard);
@@ -77,126 +77,6 @@ export function useMemorizationDashboard(userId: string | undefined) {
   return { stats, isLoading, refreshStats };
 }
 
-// useReviewSession
-export function useReviewSession(userId: string | undefined) {
-  const store = useMemorizationStore();
-  const queryClient = useQueryClient();
-
-  const startReview = useCallback(
-    async (surahId?: number, mode: SessionType = "review") => {
-      if (!userId) return;
-
-      const now = Date.now();
-      const limit = store.reviewCardsPerDay;
-
-      let entries: MemorizationCardEntry[];
-      if (mode === "practice" && surahId) {
-        // Practice mode: all cards for surah, no due date filter
-        entries = await memorizationRepository.getCardsBySurah(userId, surahId);
-      } else if (surahId) {
-        const surahCards = await memorizationRepository.getCardsBySurah(
-          userId,
-          surahId,
-        );
-        entries = surahCards.filter((c) => c.nextReviewDate <= now);
-      } else {
-        entries = await memorizationRepository.getDueCards(userId, now, limit);
-      }
-
-      const cards = entries.map(entryToCard);
-
-      if (cards.length === 0) return false;
-
-      // Prefetch verse data — load unique surahs (each load caches the full surah)
-      const seenSurahs = new Set<string>();
-      for (const card of cards) {
-        const surahKey = card.verseKey.split(":")[0];
-        if (!seenSurahs.has(surahKey)) {
-          seenSurahs.add(surahKey);
-          queryClient.prefetchQuery(verseByKeyQueryOptions(card.verseKey));
-        }
-      }
-
-      store.startSession(cards, mode);
-      return true;
-    },
-    [userId, store, queryClient],
-  );
-
-  const gradeCurrentCard = useCallback(
-    async (grade: QualityGrade) => {
-      if (!userId) return;
-
-      const card = store.sessionCards[store.currentCardIndex];
-      if (!card) return;
-
-      const now = new Date();
-      const result = calculateSM2(card, grade, now);
-
-      // Update the card
-      const updatedCard: MemorizationCard = {
-        ...card,
-        easeFactor: result.easeFactor,
-        repetition: result.repetition,
-        interval: result.interval,
-        nextReviewDate: result.nextReviewDate,
-        confidence: result.confidence,
-        totalReviews: card.totalReviews + 1,
-        correctReviews:
-          card.correctReviews + (grade >= SM2_DEFAULTS.PASSING_GRADE ? 1 : 0),
-        updatedAt: now,
-      };
-
-      // Persist to Dexie
-      await memorizationRepository.upsertCard(cardToEntry(updatedCard));
-
-      // Add review entry
-      await memorizationRepository.addReview({
-        id: crypto.randomUUID(),
-        userId,
-        cardId: card.id,
-        verseKey: card.verseKey,
-        grade,
-        previousEaseFactor: card.easeFactor,
-        newEaseFactor: result.easeFactor,
-        previousInterval: card.interval,
-        newInterval: result.interval,
-        reviewedAt: now.getTime(),
-      });
-
-      // Update store
-      store.gradeCard(grade);
-
-      // Prefetch next card's verse
-      const nextIdx = store.currentCardIndex + 2;
-      if (nextIdx < store.sessionCards.length) {
-        queryClient.prefetchQuery(
-          verseByKeyQueryOptions(store.sessionCards[nextIdx].verseKey),
-        );
-      }
-    },
-    [userId, store, queryClient],
-  );
-
-  return {
-    phase: store.phase,
-    sessionType: store.sessionType,
-    sessionCards: store.sessionCards,
-    currentCardIndex: store.currentCardIndex,
-    sessionResults: store.sessionResults,
-    revealedWords: store.revealedWords,
-    totalWords: store.totalWords,
-    startReview,
-    gradeCurrentCard,
-    nextCard: store.nextCard,
-    revealNextWord: store.revealNextWord,
-    revealAll: store.revealAll,
-    setRevealState: store.setRevealState,
-    finishSession: store.finishSession,
-    resetSession: store.resetSession,
-  };
-}
-
 // useAddVerses
 export function useAddVerses(userId: string | undefined) {
   const [isAdding, setIsAdding] = useState(false);
@@ -206,7 +86,6 @@ export function useAddVerses(userId: string | undefined) {
       if (!userId) return;
       setIsAdding(true);
       try {
-        // Filter out verses that already have a card (prevent duplicates)
         const existing = await memorizationRepository.getCardsBySurah(userId, surahId);
         const existingKeys = new Set(existing.map((c) => c.verseKey));
         const newVerses = verseNumbers.filter(
@@ -222,7 +101,7 @@ export function useAddVerses(userId: string | undefined) {
           easeFactor: SM2_DEFAULTS.INITIAL_EASE_FACTOR,
           repetition: 0,
           interval: 0,
-          nextReviewDate: now, // Due immediately
+          nextReviewDate: now,
           confidence: "learning" as ConfidenceLevel,
           totalReviews: 0,
           correctReviews: 0,
@@ -279,4 +158,89 @@ export function useSurahProgress(
   }, [refresh]);
 
   return { progressMap, isLoading, refresh };
+}
+
+/**
+ * useGradeFromMode — Converts ModeResult into SM-2 grades per verse.
+ * Auto-creates cards for verses that don't have one yet.
+ */
+export function useGradeFromMode(userId: string | undefined) {
+  const [isGrading, setIsGrading] = useState(false);
+
+  const gradeMode = useCallback(
+    async (result: ModeResult) => {
+      if (!userId) return;
+      setIsGrading(true);
+      try {
+        const now = new Date();
+
+        for (const vr of result.verseResults) {
+          const accuracy = vr.wordsTotal > 0 ? vr.wordsCorrect / vr.wordsTotal : 0;
+          const grade = gradeFromAccuracy(accuracy, result.mode);
+
+          // Get or create card
+          let entries = await memorizationRepository.getCardsBySurah(
+            userId,
+            result.surahId,
+          );
+          let entry = entries.find((e) => e.verseKey === vr.verseKey);
+
+          if (!entry) {
+            // Auto-create card
+            entry = {
+              id: crypto.randomUUID(),
+              userId,
+              verseKey: vr.verseKey as VerseKey,
+              easeFactor: SM2_DEFAULTS.INITIAL_EASE_FACTOR,
+              repetition: 0,
+              interval: 0,
+              nextReviewDate: Date.now(),
+              confidence: "learning" as ConfidenceLevel,
+              totalReviews: 0,
+              correctReviews: 0,
+              createdAt: Date.now(),
+              updatedAt: Date.now(),
+            };
+            await memorizationRepository.upsertCard(entry);
+          }
+
+          const card = entryToCard(entry);
+          const sm2Result = calculateSM2(card, grade, now);
+
+          const updatedCard: MemorizationCard = {
+            ...card,
+            easeFactor: sm2Result.easeFactor,
+            repetition: sm2Result.repetition,
+            interval: sm2Result.interval,
+            nextReviewDate: sm2Result.nextReviewDate,
+            confidence: sm2Result.confidence,
+            totalReviews: card.totalReviews + 1,
+            correctReviews:
+              card.correctReviews + (grade >= SM2_DEFAULTS.PASSING_GRADE ? 1 : 0),
+            updatedAt: now,
+          };
+
+          await memorizationRepository.upsertCard(cardToEntry(updatedCard));
+
+          await memorizationRepository.addReview({
+            id: crypto.randomUUID(),
+            userId,
+            cardId: card.id,
+            verseKey: vr.verseKey,
+            grade,
+            previousEaseFactor: card.easeFactor,
+            newEaseFactor: sm2Result.easeFactor,
+            previousInterval: card.interval,
+            newInterval: sm2Result.interval,
+            reviewedAt: now.getTime(),
+          });
+        }
+      } finally {
+        setIsGrading(false);
+      }
+    },
+    [userId],
+  );
+
+  return { gradeMode, isGrading };
 }

@@ -108,6 +108,7 @@ export const memorizeMessages = {
       quickAdding: "Adding...",
       quickAdded: "verses added!",
       removeMemorization: "Remove Memorization",
+      modes: "Modes",
     },
 
     practice: {
@@ -192,6 +193,41 @@ export const memorizeMessages = {
       totalVerses: "Total Verses",
       masteredVerses: "Mastered",
       totalReviews: "Accuracy",
+    },
+
+    // New mode-based memorization
+    verse: "Verse",
+    prevVerse: "Previous",
+    nextVerse: "Next",
+    complete: "Complete",
+    typeHere: "Type transliteration...",
+    wrongAttempt: "Wrong attempt",
+    hint: "Hint",
+    nextWord: "Next",
+    checkWord: "Check",
+
+    modes: {
+      learn: "Learn",
+      listen: "Listen",
+      test: "Test",
+      type: "Type",
+      immersive: "Focus",
+      learnDesc: "View word by word with meanings",
+      listenDesc: "Follow along with audio highlighting",
+      testDesc: "Fill in the blanks to test retention",
+      typeDesc: "Type transliteration to reinforce",
+      immersiveDesc: "Full screen distraction-free mode",
+      mastered: "mastered",
+      rangeSelect: {
+        title: "Verse Range",
+        allVerses: "All Verses",
+        versesRange: "Verses {from}-{to}",
+        versesCount: "{n} verses",
+        custom: "Custom Range",
+        startLabel: "Start",
+        endLabel: "End",
+        start: "Start",
+      },
     },
   },
 } as const;

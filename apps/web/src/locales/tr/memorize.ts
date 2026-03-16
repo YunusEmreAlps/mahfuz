@@ -108,6 +108,7 @@ export const memorizeMessages = {
       quickAdding: "Ekleniyor...",
       quickAdded: "ayet eklendi!",
       removeMemorization: "Ezberi Kaldır",
+      modes: "Modlar",
     },
 
     practice: {
@@ -192,6 +193,41 @@ export const memorizeMessages = {
       totalVerses: "Toplam Ayet",
       masteredVerses: "Ezberlenen",
       totalReviews: "Doğruluk",
+    },
+
+    // New mode-based memorization
+    verse: "Ayet",
+    prevVerse: "Önceki",
+    nextVerse: "Sonraki",
+    complete: "Tamamla",
+    typeHere: "Okunuşu yazın...",
+    wrongAttempt: "Yanlış deneme",
+    hint: "İpucu",
+    nextWord: "Sonraki",
+    checkWord: "Kontrol Et",
+
+    modes: {
+      learn: "Öğren",
+      listen: "Dinle",
+      test: "Test",
+      type: "Yaz",
+      immersive: "Odaklan",
+      learnDesc: "Kelime kelime görüntüle, anlamını öğren",
+      listenDesc: "Sesli takip ile kelime kelime dinle",
+      testDesc: "Boşluk doldurma ile ezberini test et",
+      typeDesc: "Okunuşu yazarak pekiştir",
+      immersiveDesc: "Tam ekran dikkat modu",
+      mastered: "ezber",
+      rangeSelect: {
+        title: "Ayet Aralığı",
+        allVerses: "Tüm Sûre",
+        versesRange: "{from}-{to}. ayetler",
+        versesCount: "{n} ayet",
+        custom: "Özel Aralık",
+        startLabel: "Başlangıç",
+        endLabel: "Bitiş",
+        start: "Başla",
+      },
     },
   },
 } as const;

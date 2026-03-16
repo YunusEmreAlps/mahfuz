@@ -1,48 +1,64 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type {
-  MemorizationCard,
   MemorizationStats,
   QualityGrade,
 } from "@mahfuz/shared/types";
 
-export type SessionPhase = "idle" | "selecting" | "reviewing" | "results";
-export type SessionType = "review" | "practice" | "verification";
+// --- New mode-aware types ---
+export type MemorizeMode = "learn" | "listen" | "test" | "type" | "immersive";
+export type SessionPhase = "idle" | "selecting" | "active" | "results";
 
-export interface SessionResult {
-  cardId: string;
+export interface WordResult {
+  wordPosition: number;
   verseKey: string;
-  grade: QualityGrade;
-  wasCorrect: boolean;
+  correct: boolean;
+  mode: MemorizeMode;
+  timeMs: number;
+}
+
+export interface VerseResult {
+  verseKey: string;
+  mode: MemorizeMode;
+  wordsCorrect: number;
+  wordsTotal: number;
+  timeMs: number;
+}
+
+export interface ModeResult {
+  mode: MemorizeMode;
+  surahId: number;
+  verseResults: VerseResult[];
+  totalCorrect: number;
+  totalWords: number;
+  completedAt: number;
 }
 
 interface MemorizationStoreState {
-  // Session
+  // Mode session
   phase: SessionPhase;
-  sessionType: SessionType;
-  sessionCards: MemorizationCard[];
-  currentCardIndex: number;
-  sessionResults: SessionResult[];
+  activeMode: MemorizeMode | null;
+  activeSurahId: number | null;
+  currentVerseIndex: number;
+  totalVerses: number;
+  wordResults: WordResult[];
+  verseResults: VerseResult[];
+  lastModeResult: ModeResult | null;
 
   // Stats (loaded from DB)
   stats: MemorizationStats | null;
-
-  // Reveal state
-  revealedWords: number;
-  totalWords: number;
 
   // Goals (persisted)
   newCardsPerDay: number;
   reviewCardsPerDay: number;
 
   // Actions
-  startSession: (cards: MemorizationCard[], type?: SessionType) => void;
-  setRevealState: (revealed: number, total: number) => void;
-  revealNextWord: () => void;
-  revealAll: () => void;
-  gradeCard: (grade: QualityGrade) => void;
-  nextCard: () => void;
-  finishSession: () => void;
+  startMode: (mode: MemorizeMode, surahId: number, totalVerses: number) => void;
+  advanceVerse: () => void;
+  setCurrentVerse: (index: number) => void;
+  recordWordResult: (result: WordResult) => void;
+  completeVerse: (result: VerseResult) => void;
+  finishMode: (result: ModeResult) => void;
   resetSession: () => void;
   setStats: (stats: MemorizationStats) => void;
   setGoals: (newCards: number, reviewCards: number) => void;
@@ -53,87 +69,67 @@ export const useMemorizationStore = create<MemorizationStoreState>()(
     (set, get) => ({
       // Session state
       phase: "idle",
-      sessionType: "review",
-      sessionCards: [],
-      currentCardIndex: 0,
-      sessionResults: [],
+      activeMode: null,
+      activeSurahId: null,
+      currentVerseIndex: 0,
+      totalVerses: 0,
+      wordResults: [],
+      verseResults: [],
+      lastModeResult: null,
       stats: null,
-      revealedWords: 0,
-      totalWords: 0,
 
       // Defaults
       newCardsPerDay: 5,
       reviewCardsPerDay: 20,
 
-      startSession: (cards, type = "review") =>
+      startMode: (mode, surahId, totalVerses) =>
         set({
-          phase: "reviewing",
-          sessionType: type,
-          sessionCards: cards,
-          currentCardIndex: 0,
-          sessionResults: [],
-          revealedWords: 0,
-          totalWords: 0,
+          phase: "active",
+          activeMode: mode,
+          activeSurahId: surahId,
+          currentVerseIndex: 0,
+          totalVerses,
+          wordResults: [],
+          verseResults: [],
+          lastModeResult: null,
         }),
 
-      setRevealState: (revealed, total) =>
-        set({ revealedWords: revealed, totalWords: total }),
-
-      revealNextWord: () => {
-        const { revealedWords, totalWords } = get();
-        if (revealedWords < totalWords) {
-          set({ revealedWords: revealedWords + 1 });
+      advanceVerse: () => {
+        const { currentVerseIndex, totalVerses } = get();
+        const next = currentVerseIndex + 1;
+        if (next < totalVerses) {
+          set({ currentVerseIndex: next });
         }
       },
 
-      revealAll: () => {
-        const { totalWords } = get();
-        set({ revealedWords: totalWords });
+      setCurrentVerse: (index) => set({ currentVerseIndex: index }),
+
+      recordWordResult: (result) => {
+        const { wordResults } = get();
+        set({ wordResults: [...wordResults, result] });
       },
 
-      gradeCard: (grade) => {
-        const { sessionCards, currentCardIndex, sessionResults } = get();
-        const card = sessionCards[currentCardIndex];
-        if (!card) return;
+      completeVerse: (result) => {
+        const { verseResults } = get();
+        set({ verseResults: [...verseResults, result] });
+      },
 
+      finishMode: (result) =>
         set({
-          sessionResults: [
-            ...sessionResults,
-            {
-              cardId: card.id,
-              verseKey: card.verseKey,
-              grade,
-              wasCorrect: grade >= 3,
-            },
-          ],
-        });
-      },
-
-      nextCard: () => {
-        const { currentCardIndex, sessionCards } = get();
-        const next = currentCardIndex + 1;
-        if (next >= sessionCards.length) {
-          set({ phase: "results" });
-        } else {
-          set({
-            currentCardIndex: next,
-            revealedWords: 0,
-            totalWords: 0,
-          });
-        }
-      },
-
-      finishSession: () => set({ phase: "results" }),
+          phase: "results",
+          lastModeResult: result,
+        }),
 
       resetSession: () =>
         set({
           phase: "idle",
-          sessionType: "review",
-          sessionCards: [],
-          currentCardIndex: 0,
-          sessionResults: [],
-          revealedWords: 0,
-          totalWords: 0,
+          activeMode: null,
+          activeSurahId: null,
+          currentVerseIndex: 0,
+          totalVerses: 0,
+          wordResults: [],
+          verseResults: [],
+          lastModeResult: null,
         }),
 
       setStats: (stats) => set({ stats }),
@@ -150,3 +146,24 @@ export const useMemorizationStore = create<MemorizationStoreState>()(
     },
   ),
 );
+
+// Grade conversion helpers
+export function gradeFromAccuracy(
+  accuracy: number,
+  mode: MemorizeMode,
+): QualityGrade {
+  if (mode === "learn" || mode === "listen") return 3;
+  if (mode === "immersive") return 2;
+  if (mode === "type") {
+    if (accuracy >= 0.9) return 5;
+    if (accuracy >= 0.7) return 4;
+    if (accuracy >= 0.5) return 3;
+    return 1;
+  }
+  // test mode
+  if (accuracy >= 0.9) return 5;
+  if (accuracy >= 0.7) return 4;
+  if (accuracy >= 0.5) return 3;
+  if (accuracy >= 0.3) return 2;
+  return 1;
+}

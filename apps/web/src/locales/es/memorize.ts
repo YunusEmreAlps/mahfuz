@@ -108,6 +108,7 @@ export const memorizeMessages = {
       quickAdding: "Añadiendo...",
       quickAdded: "¡aleyas añadidas!",
       removeMemorization: "Eliminar memorización",
+      modes: "Modos",
     },
 
     practice: {
@@ -192,6 +193,41 @@ export const memorizeMessages = {
       totalVerses: "Total de aleyas",
       masteredVerses: "Dominadas",
       totalReviews: "Precisión",
+    },
+
+    // New mode-based memorization
+    verse: "Aleya",
+    prevVerse: "Anterior",
+    nextVerse: "Siguiente",
+    complete: "Completar",
+    typeHere: "Escribe la transliteración...",
+    wrongAttempt: "Intento incorrecto",
+    hint: "Pista",
+    nextWord: "Siguiente",
+    checkWord: "Comprobar",
+
+    modes: {
+      learn: "Aprender",
+      listen: "Escuchar",
+      test: "Test",
+      type: "Escribir",
+      immersive: "Enfoque",
+      learnDesc: "Ver palabra por palabra con significados",
+      listenDesc: "Sigue el audio con resaltado de palabras",
+      testDesc: "Completa los espacios para probar tu memoria",
+      typeDesc: "Escribe la transliteración para reforzar",
+      immersiveDesc: "Modo de pantalla completa sin distracciones",
+      mastered: "dominado",
+      rangeSelect: {
+        title: "Rango de aleyas",
+        allVerses: "Todas las aleyas",
+        versesRange: "Aleyas {from}-{to}",
+        versesCount: "{n} aleyas",
+        custom: "Rango personalizado",
+        startLabel: "Inicio",
+        endLabel: "Fin",
+        start: "Comenzar",
+      },
     },
   },
 } as const;
