@@ -60,6 +60,8 @@ export const pages = {
   },
 
   onboarding: {
+    langTitle: "Elegir Idioma",
+    langSubtitle: "¿En qué idioma te gustaría usar la aplicación?",
     skip: "Omitir",
     next: "Siguiente",
     start: "Comenzar",

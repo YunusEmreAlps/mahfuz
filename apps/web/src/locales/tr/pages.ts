@@ -60,6 +60,8 @@ export const pages = {
   },
 
   onboarding: {
+    langTitle: "Dil Seçin",
+    langSubtitle: "Uygulamayı hangi dilde kullanmak istersiniz?",
     skip: "Atla",
     next: "İleri",
     start: "Başla",

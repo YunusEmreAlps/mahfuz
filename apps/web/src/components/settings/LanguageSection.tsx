@@ -18,7 +18,7 @@ export function LanguageSection({
     <div>
       <SettingsLabel label={t.settings.language} description={t.settings.languageDesc} />
       <div className="mt-3 grid grid-cols-3 gap-1.5">
-        {getAllLocaleConfigs().map(({ code, config }) => (
+        {getAllLocaleConfigs().filter(({ config }) => config.complete).map(({ code, config }) => (
           <button
             key={code}
             onClick={() => onLocaleChange(code)}

@@ -16,7 +16,7 @@ import { ReciterModal } from "~/components/audio/ReciterModal";
 import { Dialog, DialogContent, DialogTitle } from "~/components/ui/Dialog";
 import { MahfuzLogo } from "~/components/icons";
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 
 const THEMES: { value: Theme; color: string; border: string }[] = [
   { value: "light", color: "#ffffff", border: "#d2d2d7" },
@@ -100,7 +100,40 @@ export function Onboarding() {
             className="flex transition-transform duration-300"
             style={{ transform: `translateX(-${step * 100}%)` }}
           >
-            {/* Step 1: Welcome */}
+            {/* Step 1: Language */}
+            <div className="w-full shrink-0 p-8 text-center">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-600/10">
+                <svg className="h-7 w-7 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5a17.92 17.92 0 0 1-8.716-2.247m0 0A8.966 8.966 0 0 1 3 12c0-1.264.26-2.466.732-3.558" />
+                </svg>
+              </div>
+              <h2 className="mb-2 text-[20px] font-semibold text-[var(--theme-text)]">
+                {t.onboarding.langTitle}
+              </h2>
+              <p className="mb-6 text-[14px] text-[var(--theme-text-secondary)]">
+                {t.onboarding.langSubtitle}
+              </p>
+              <div className="space-y-2">
+                {getAllLocaleConfigs()
+                  .filter(({ config }) => config.complete)
+                  .map(({ code, config }) => (
+                  <button
+                    key={code}
+                    onClick={() => setLocale(code)}
+                    className={`flex w-full items-center gap-3 rounded-xl border-2 px-4 py-3 text-left transition-all ${locale === code ? "border-primary-600 bg-primary-600/5" : "border-[var(--theme-border)] hover:border-[var(--theme-text-tertiary)]"}`}
+                  >
+                    <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${locale === code ? "border-primary-600" : "border-[var(--theme-divider)]"}`}>
+                      {locale === code && <span className="h-2.5 w-2.5 rounded-full bg-primary-600" />}
+                    </span>
+                    <span className="text-[15px] font-medium text-[var(--theme-text)]">
+                      {config.displayName}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Step 2: Welcome */}
             <div className="w-full shrink-0 p-8 text-center">
               <MahfuzLogo branded size={56} className="mx-auto mb-4" />
               <h2 className="mb-2 text-[20px] font-semibold text-[var(--theme-text)]">
@@ -124,7 +157,7 @@ export function Onboarding() {
               </div>
             </div>
 
-            {/* Step 2: Preferences */}
+            {/* Step 3: Preferences */}
             <div className="w-full shrink-0 overflow-y-auto max-h-[70vh] p-8 text-center">
               <h2 className="mb-2 text-[20px] font-semibold text-[var(--theme-text)]">
                 {t.onboarding.prefsTitle}
@@ -171,20 +204,6 @@ export function Onboarding() {
                   </button>
                 ))}
               </div>
-              <div className="flex items-center justify-center gap-2 rounded-xl bg-[var(--theme-pill-bg)] p-1">
-                {getAllLocaleConfigs()
-                  .filter(({ config }) => config.complete)
-                  .map(({ code, config }) => (
-                  <button
-                    key={code}
-                    onClick={() => setLocale(code)}
-                    className={`flex-1 rounded-lg py-2 text-[13px] font-medium transition-all ${locale === code ? "bg-primary-600 text-white" : "text-[var(--theme-text-secondary)]"}`}
-                  >
-                    {config.displayName}
-                  </button>
-                ))}
-              </div>
-
               {/* Advanced Settings Toggle */}
               <button
                 onClick={() => setShowAdvanced((v) => !v)}
@@ -293,7 +312,7 @@ export function Onboarding() {
               )}
             </div>
 
-            {/* Step 3: Word Colors */}
+            {/* Step 4: Word Colors */}
             <div className="w-full shrink-0 p-8 text-center">
               <h2 className="mb-2 text-[20px] font-semibold text-[var(--theme-text)]">
                 {t.onboarding.colorTitle}
@@ -357,7 +376,7 @@ export function Onboarding() {
               </p>
             </div>
 
-            {/* Step 4: Ready */}
+            {/* Step 5: Ready */}
             <div className="w-full shrink-0 p-8 text-center">
               <p
                 dir="rtl"

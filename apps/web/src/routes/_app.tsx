@@ -442,7 +442,7 @@ function AppLayout() {
               </PopoverTrigger>
               <PopoverContent align="end" className="w-56 overflow-hidden rounded-xl p-0">
                 <div className="max-h-[320px] overflow-y-auto py-1">
-                  {getAllLocaleConfigs().map(({ code, config }) => (
+                  {getAllLocaleConfigs().filter(({ config }) => config.complete).map(({ code, config }) => (
                     <button
                       key={code}
                       type="button"
