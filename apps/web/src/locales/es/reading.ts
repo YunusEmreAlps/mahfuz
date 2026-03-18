@@ -75,6 +75,8 @@ export const readingMessages = {
     colorCategory: "Color",
     mushafNote: "La traducción se muestra en una página separada",
     mushafNoTranslation: "Selecciona una traducción en configuración para verla aquí",
+    mushafShowMeal: "Mostrar traducción",
+    mushafHideMeal: "Ocultar traducción",
     mushafTooltipSize: "Tamaño del texto emergente",
     wbwPopupTextSize: "Tamaño del texto emergente",
     fontScale: "Escala global",

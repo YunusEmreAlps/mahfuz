@@ -27,6 +27,7 @@ export function MushafView({ verses, showBismillah = true }: MushafViewProps) {
   const mushafTranslationFontSize = usePreferencesStore((s) => s.mushafTranslationFontSize);
   const mushafTooltipTextSize = usePreferencesStore((s) => s.mushafTooltipTextSize);
   const mushafShowTranslation = usePreferencesStore((s) => s.mushafShowTranslation);
+  const setMushafShowTranslation = usePreferencesStore((s) => s.setMushafShowTranslation);
   const selectedTranslations = usePreferencesStore((s) => s.selectedTranslations);
   const { t } = useTranslation();
 
@@ -43,45 +44,75 @@ export function MushafView({ verses, showBismillah = true }: MushafViewProps) {
     }
   }, []);
 
-  return (
-    <div className="mushaf-spread" ref={containerRef} onClick={handleContainerClick}>
-      {/* Arabic page — right on desktop, first on mobile */}
-      <div className="mushaf-spread-page mushaf-spread-arabic">
-        <ArabicPage
-          verses={verses}
-          showBismillah={showBismillah}
-          colorizeWords={colorizeWords}
-          colors={colors}
-          fontSize={mushafArabicFontSize}
-          tooltipTextSize={mushafTooltipTextSize}
-          selectedWord={selectedWord}
-          onSelectWord={setSelectedWord}
-        />
-      </div>
+  const toggleTranslation = useCallback(() => {
+    setMushafShowTranslation(!mushafShowTranslation);
+  }, [mushafShowTranslation, setMushafShowTranslation]);
 
-      {/* Spine divider + Translation page — hidden when mushafShowTranslation is off */}
-      {mushafShowTranslation && (
-        <>
-          <div className="mushaf-spread-spine" />
-          <div className="mushaf-spread-page mushaf-spread-meal">
-            {hasTranslations ? (
-              <MealPage
-                verses={verses}
-                fontSize={mushafTranslationFontSize}
-                selectedWord={selectedWord}
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center px-6">
-                <p className="text-center text-[13px] text-[var(--theme-text-quaternary)]">
-                  {selectedTranslations.length === 0
-                    ? t.toolbar.mushafNoTranslation
-                    : t.toolbar.mushafNote}
-                </p>
-              </div>
-            )}
-          </div>
-        </>
-      )}
+  return (
+    <div className="relative">
+      {/* Meal toggle button */}
+      <button
+        type="button"
+        onClick={toggleTranslation}
+        className="absolute right-2 top-2 z-10 flex items-center gap-1.5 rounded-lg border border-[var(--theme-border)] bg-[var(--theme-bg-primary)] px-2.5 py-1.5 text-[12px] font-medium text-[var(--theme-text-secondary)] shadow-sm transition-colors hover:bg-[var(--theme-hover-bg)]"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          {mushafShowTranslation ? (
+            <>
+              <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+              <circle cx="12" cy="12" r="3" />
+            </>
+          ) : (
+            <>
+              <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+              <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+              <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+              <line x1="2" x2="22" y1="2" y2="22" />
+            </>
+          )}
+        </svg>
+        {mushafShowTranslation ? t.toolbar.mushafHideMeal : t.toolbar.mushafShowMeal}
+      </button>
+
+      <div className="mushaf-spread" ref={containerRef} onClick={handleContainerClick}>
+        {/* Arabic page — right on desktop, first on mobile */}
+        <div className="mushaf-spread-page mushaf-spread-arabic">
+          <ArabicPage
+            verses={verses}
+            showBismillah={showBismillah}
+            colorizeWords={colorizeWords}
+            colors={colors}
+            fontSize={mushafArabicFontSize}
+            tooltipTextSize={mushafTooltipTextSize}
+            selectedWord={selectedWord}
+            onSelectWord={setSelectedWord}
+          />
+        </div>
+
+        {/* Spine divider + Translation page — hidden when mushafShowTranslation is off */}
+        {mushafShowTranslation && (
+          <>
+            <div className="mushaf-spread-spine" />
+            <div className="mushaf-spread-page mushaf-spread-meal">
+              {hasTranslations ? (
+                <MealPage
+                  verses={verses}
+                  fontSize={mushafTranslationFontSize}
+                  selectedWord={selectedWord}
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center px-6">
+                  <p className="text-center text-[13px] text-[var(--theme-text-quaternary)]">
+                    {selectedTranslations.length === 0
+                      ? t.toolbar.mushafNoTranslation
+                      : t.toolbar.mushafNote}
+                  </p>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

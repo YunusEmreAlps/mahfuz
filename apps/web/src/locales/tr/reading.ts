@@ -75,6 +75,8 @@ export const readingMessages = {
     colorCategory: "Renk",
     mushafNote: "Çeviri ayrı sayfada gösterilir",
     mushafNoTranslation: "Çeviriyi görmek için ayarlardan bir çeviri seçin",
+    mushafShowMeal: "Meali Göster",
+    mushafHideMeal: "Meali Gizle",
     mushafTooltipSize: "Tooltip Metin Boyutu",
     wbwPopupTextSize: "Popup Metin Boyutu",
     fontScale: "Genel Ölçek",
