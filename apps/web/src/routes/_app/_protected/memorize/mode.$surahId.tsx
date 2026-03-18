@@ -6,6 +6,7 @@ import { memorizeWbwByChapterQueryOptions } from "~/hooks/useWbwData";
 import { chapterAudioQueryOptions } from "~/hooks/useAudio";
 import { chaptersQueryOptions } from "~/hooks/useChapters";
 import { mergeWbwIntoVerses } from "~/lib/quran-data";
+import type { ChapterAudioData } from "@mahfuz/audio-engine";
 import { useAudioStore } from "~/stores/useAudioStore";
 import { useMemorizationStore } from "~/stores/useMemorizationStore";
 import { useGradeFromMode } from "~/hooks/useMemorization";
@@ -63,8 +64,19 @@ function ModeRoute() {
   const { data: versesData } = useSuspenseQuery(versesByChapterQueryOptions(sid));
   // WBW data
   const { data: wbwData } = useQuery(memorizeWbwByChapterQueryOptions(sid));
-  // Audio data (for listen mode)
-  const { data: audioData } = useQuery(chapterAudioQueryOptions(reciterId, sid));
+  // Audio data (for listen mode) — transform QDCAudioFile → ChapterAudioData
+  const { data: rawAudioData } = useQuery(chapterAudioQueryOptions(reciterId, sid));
+  const audioData: ChapterAudioData | null = rawAudioData
+    ? {
+        audioUrl: rawAudioData.audio_url,
+        verseTimings: rawAudioData.verse_timings.map((t) => ({
+          verseKey: t.verse_key,
+          from: t.timestamp_from,
+          to: t.timestamp_to,
+          segments: t.segments,
+        })),
+      }
+    : null;
 
   // Merge WBW into verses
   const verses = mergeWbwIntoVerses(versesData.verses, wbwData);
