@@ -128,6 +128,22 @@ function SurahView() {
   const togglePlayPause = useAudioStore((s) => s.togglePlayPause);
   const currentVerseKey = useAudioStore((s) => s.currentVerseKey);
 
+  // Auto-navigate when audio auto-continues to the next surah
+  const prevAudioChapterIdRef = useRef(audioChapterId);
+  useEffect(() => {
+    const prev = prevAudioChapterIdRef.current;
+    prevAudioChapterIdRef.current = audioChapterId;
+
+    // Audio was playing this surah and moved to a different one (auto-continue)
+    if (
+      prev === chapterId &&
+      audioChapterId !== null &&
+      audioChapterId !== chapterId
+    ) {
+      navigate({ to: "/$surahId", params: { surahId: String(audioChapterId) } });
+    }
+  }, [audioChapterId, chapterId, navigate]);
+
   const { data: chapter } = useSuspenseQuery(chapterQueryOptions(chapterId));
   const { data: chapters } = useSuspenseQuery(chaptersQueryOptions());
   const { data: versesData } = useSuspenseQuery(
