@@ -688,6 +688,7 @@ function SurahHeader({
             <Link
               to="/focus/$pageNumber"
               params={{ pageNumber: String(focusPage) }}
+              search={{ from: "surah", fromId: currentId }}
               className="inline-flex items-center gap-1 rounded-full bg-[var(--theme-hover-bg)] px-3 py-1.5 text-[11px] font-medium text-[var(--theme-text-secondary)] transition-all hover:bg-[var(--theme-pill-bg)] active:scale-[0.97]"
             >
               <FocusModeIcon width={14} height={14} />
@@ -838,6 +839,7 @@ function CompactHeader({
             <Link
               to="/focus/$pageNumber"
               params={{ pageNumber: String(focusPage) }}
+              search={{ from: source, fromId: currentId }}
               className="inline-flex items-center gap-1 rounded-full bg-[var(--theme-pill-bg)] px-3 py-1.5 text-[11px] font-medium text-[var(--theme-text-secondary)] transition-all hover:bg-[var(--theme-hover-bg)] active:scale-[0.97]"
             >
               <FocusModeIcon width={14} height={14} />

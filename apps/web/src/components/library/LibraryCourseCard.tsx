@@ -28,24 +28,21 @@ export function LibraryCourseCard({
 
   const card = (
     <div
-      className={`group relative flex flex-col overflow-hidden rounded-2xl border transition-all ${
+      className={`group relative flex flex-col rounded-2xl transition-all ${
         isComplete
-          ? "border-emerald-200 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-950/20"
+          ? "bg-primary-50/50 dark:bg-primary-950/20"
           : isUnlocked
-            ? "border-[var(--theme-border)] bg-[var(--theme-bg-primary)] shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)] hover:-translate-y-0.5"
-            : "border-[var(--theme-border)] bg-[var(--theme-bg)] opacity-50"
+            ? "bg-[var(--theme-bg-primary)] shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)] hover:-translate-y-0.5"
+            : "bg-[var(--theme-bg)] opacity-50"
       }`}
     >
-      {/* Color band top */}
-      <div className={`h-1.5 w-full ${isComplete ? "bg-emerald-500" : isUnlocked ? "bg-primary-600" : "bg-[var(--theme-border)]"}`} />
-
       <div className="flex flex-1 flex-col p-4">
         {/* Icon / number */}
         <div className="mb-3 flex items-center gap-3">
           <div
             className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[14px] font-bold ${
               isComplete
-                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400"
+                ? "bg-primary-500 text-white"
                 : isUnlocked
                   ? "bg-primary-600/10 text-primary-700 dark:text-primary-400"
                   : "bg-[var(--theme-hover-bg)] text-[var(--theme-text-quaternary)]"
@@ -94,7 +91,7 @@ export function LibraryCourseCard({
               </div>
               <div className="h-1.5 overflow-hidden rounded-full bg-[var(--theme-bg)]">
                 <div
-                  className={`h-full rounded-full transition-all ${isComplete ? "bg-emerald-500" : "bg-primary-600"}`}
+                  className={`h-full rounded-full transition-all ${isComplete ? "bg-primary-500" : "bg-primary-600"}`}
                   style={{ width: `${progress}%` }}
                 />
               </div>

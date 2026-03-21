@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { versesByLayoutPageQueryOptions } from "~/hooks/useVerses";
 import { chaptersQueryOptions } from "~/hooks/useChapters";
 import { FocusLayout } from "~/components/focus/FocusLayout";
@@ -14,7 +14,10 @@ import { useReadingStats } from "~/stores/useReadingStats";
 import { useReadingHistory } from "~/stores/useReadingHistory";
 
 export const Route = createFileRoute("/focus/$pageNumber")({
-  validateSearch: () => ({}),
+  validateSearch: (search: Record<string, unknown>) => ({
+    from: (search.from as string) || undefined,
+    fromId: search.fromId ? Number(search.fromId) : undefined,
+  }),
   loader: ({ context, params }) => {
     const pageNum = Number(params.pageNumber);
     const layout = getActiveLayout();
@@ -36,8 +39,21 @@ export const Route = createFileRoute("/focus/$pageNumber")({
 
 function FocusRoute() {
   const { pageNumber } = Route.useParams();
+  const { from, fromId } = Route.useSearch();
   const pageNum = Number(pageNumber);
   const layout = getActiveLayout();
+  const navigate = useNavigate();
+
+  // Build exit callback based on where user came from
+  const handleExit = useCallback(() => {
+    if (from === "surah" && fromId) {
+      navigate({ to: "/$surahId", params: { surahId: String(fromId) } as any, search: {} as any });
+    } else if (from === "juz" && fromId) {
+      navigate({ to: "/juz/$juzId", params: { juzId: String(fromId) } as any });
+    } else {
+      navigate({ to: "/page/$pageNumber", params: { pageNumber: String(pageNum) } });
+    }
+  }, [from, fromId, pageNum, navigate]);
 
   // Track page read + reading history
   const markPageRead = useReadingStats((s) => s.markPageRead);
@@ -56,10 +72,11 @@ function FocusRoute() {
   return (
     <FocusLayout
       pageNumber={pageNum}
+      onExit={handleExit}
       overlay={
         <>
           <AnnotationCanvas pageNumber={pageNum} />
-          <AnnotationToolbar pageNumber={pageNum} chapters={chapters} />
+          <AnnotationToolbar pageNumber={pageNum} chapters={chapters} onExit={handleExit} />
         </>
       }
     >

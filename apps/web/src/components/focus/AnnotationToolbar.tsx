@@ -24,6 +24,8 @@ import { PageJumpDialog } from "./PageJumpDialog";
 interface AnnotationToolbarProps {
   pageNumber: number;
   chapters: Chapter[];
+  /** Called when user exits Focus mode */
+  onExit?: () => void;
 }
 
 /**
@@ -34,6 +36,7 @@ interface AnnotationToolbarProps {
 export function AnnotationToolbar({
   pageNumber,
   chapters,
+  onExit: onExitProp,
 }: AnnotationToolbarProps) {
   const navigate = useNavigate();
   const isVisible = useFocusStore((s) => s.isToolbarVisible);
@@ -67,11 +70,15 @@ export function AnnotationToolbar({
   }, [popUndo]);
 
   const handleExit = useCallback(() => {
-    navigate({
-      to: "/page/$pageNumber",
-      params: { pageNumber: String(pageNumber) },
-    });
-  }, [navigate, pageNumber]);
+    if (onExitProp) {
+      onExitProp();
+    } else {
+      navigate({
+        to: "/page/$pageNumber",
+        params: { pageNumber: String(pageNumber) },
+      });
+    }
+  }, [onExitProp, navigate, pageNumber]);
 
   const handlePageSelect = useCallback(
     (page: number) => {

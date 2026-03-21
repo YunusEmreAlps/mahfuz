@@ -29,7 +29,7 @@ export function StageCard({
     <div
       className={`rounded-2xl border-2 p-4 transition-all sm:p-5 ${
         isComplete
-          ? "border-emerald-200 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-950/20"
+          ? "border-2 border-primary-300 bg-primary-50/40 dark:border-primary-700 dark:bg-primary-950/20"
           : isUnlocked
             ? "border-[var(--theme-border)] bg-[var(--theme-bg-primary)] shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)]"
             : "border-[var(--theme-border)] bg-[var(--theme-bg)] opacity-60"
@@ -40,7 +40,7 @@ export function StageCard({
         <div
           className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[14px] font-bold ${
             isComplete
-              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400"
+              ? "bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-400"
               : isUnlocked
                 ? "bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-400"
                 : "bg-[var(--theme-hover-bg)] text-[var(--theme-text-quaternary)]"
@@ -84,7 +84,7 @@ export function StageCard({
               <div className="h-1.5 overflow-hidden rounded-full bg-[var(--theme-bg)]">
                 <div
                   className={`h-full rounded-full transition-all ${
-                    isComplete ? "bg-emerald-500" : "bg-primary-600"
+                    isComplete ? "bg-primary-500" : "bg-primary-600"
                   }`}
                   style={{ width: `${progress}%` }}
                 />

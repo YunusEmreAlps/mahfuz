@@ -241,7 +241,7 @@ function CoursesTab({ userId }: { userId: string }) {
                         {title}
                       </h3>
                       {isComplete && (
-                        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
+                        <span className="rounded-full bg-primary-100 px-2 py-0.5 text-[10px] font-semibold text-primary-700 dark:bg-primary-900/40 dark:text-primary-400">
                           <EmojiIcon emoji="✓" className="h-2.5 w-2.5" />
                         </span>
                       )}
@@ -256,7 +256,7 @@ function CoursesTab({ userId }: { userId: string }) {
                 {/* Level progress bar */}
                 <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-[var(--theme-bg)]">
                   <div
-                    className={`h-full rounded-full transition-all ${isComplete ? "bg-emerald-500" : "bg-primary-600"}`}
+                    className={`h-full rounded-full transition-all ${isComplete ? "bg-primary-500" : "bg-primary-600"}`}
                     style={{ width: `${progress}%` }}
                   />
                 </div>

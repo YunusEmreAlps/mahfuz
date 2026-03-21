@@ -11,6 +11,8 @@ interface FocusLayoutProps {
   children: ReactNode;
   /** Overlay layer (canvas, toolbar, dialogs) */
   overlay?: ReactNode;
+  /** Called when user exits Focus mode */
+  onExit?: () => void;
 }
 
 /**
@@ -24,6 +26,7 @@ export function FocusLayout({
   pageNumber,
   children,
   overlay,
+  onExit,
 }: FocusLayoutProps) {
   const theme = useDisplayPrefs((s) => s.theme);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -96,14 +99,15 @@ export function FocusLayout({
           goPrev();
           break;
         case "Escape":
-          navigate({ to: "/page/$pageNumber", params: { pageNumber: String(pageNumber) } });
+          if (onExit) onExit();
+          else navigate({ to: "/page/$pageNumber", params: { pageNumber: String(pageNumber) } });
           break;
       }
     }
 
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [goNext, goPrev, navigate, pageNumber]);
+  }, [goNext, goPrev, navigate, pageNumber, onExit]);
 
   return (
     <div
