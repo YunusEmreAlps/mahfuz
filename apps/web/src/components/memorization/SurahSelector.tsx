@@ -349,7 +349,7 @@ export function SurahSelector({ userId }: SurahSelectorProps) {
           onClick={() => setExpandedId(isExpanded ? null : ch.id)}
           className="flex w-full items-center gap-3 px-4 py-3 transition-colors hover:bg-[var(--theme-hover-bg)] active:bg-[var(--theme-hover-bg)] cursor-pointer text-left"
         >
-          <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-[12px] font-semibold tabular-nums bg-amber-500/15 text-amber-500">
+          <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-[12px] font-semibold tabular-nums bg-primary-600/10 text-primary-700 dark:text-primary-400">
             {ch.id}
           </span>
           <div className="min-w-0 flex-1">
@@ -568,7 +568,7 @@ export function SurahSelector({ userId }: SurahSelectorProps) {
         <Column
           title={t.memorize.surahSelector.inProgressSurahs}
           count={inProgressChapters.length}
-          colorDot="bg-amber-500"
+          colorDot="bg-primary-600"
           tabIndex={1}
           activeTab={activeTab}
           emptyMessage={t.memorize.surahSelector.noSurahsInColumn}
