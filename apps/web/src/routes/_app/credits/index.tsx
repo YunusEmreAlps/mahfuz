@@ -75,6 +75,22 @@ const FONT_CREDITS = [
   },
 ] as const;
 
+const SPECIAL_THANKS = [
+  { name: "Arda Balkan", github: "ardabalkandev" },
+  { name: "Faruk Talha Güner", github: "Lagarux" },
+  { name: "Firdevs Ilgaz", github: "teengineer" },
+  { name: "Furkan Arlı", github: "frknarli" },
+  { name: "Halil İbrahim Bestil", github: "hibestil" },
+  { name: "Ismail Arslan", github: "enesismail" },
+  { name: "İ. Zal Solmuş", github: "zalcod" },
+  { name: "M. Taha Uyar", github: "mtuyar" },
+  { name: "R. Fatih Akbulut", github: "R-Fatih" },
+  { name: "Safa Orhan", github: "safaorhan" },
+  { name: "Şeref Ilgaz", github: "serefilgaz" },
+  { name: "Tarık Çalışkan", github: "atarikcaliskan" },
+  { name: "Yakup Selim Uçar", github: "yakupselimucar" },
+] as const;
+
 const ISSUE_LINK_DEFS = [
   { key: "featureRequest" as const, templateTr: "feature-request.yml", templateEn: "feature-request-en.yml", iconBg: "bg-blue-500", iconPath: '<path d="M12 5v14M5 12h14" />' },
   { key: "bugReport" as const, templateTr: "bug-report.yml", templateEn: "bug-report-en.yml", iconBg: "bg-red-500", iconPath: '<circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />' },
@@ -152,23 +168,27 @@ function CreditsPage() {
         <p className="mb-4 text-[13px] text-[var(--theme-text-tertiary)]">
           {t.credits.specialThanksDesc}
         </p>
-        <div className="flex items-center gap-3">
-          <img
-            src="https://github.com/enesismail.png"
-            alt="Ismail Arslan"
-            className="h-10 w-10 rounded-full ring-2 ring-[var(--theme-border)]"
-          />
-          <div>
-            <a
-              href="https://github.com/enesismail"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[13px] font-semibold text-[var(--theme-text)] hover:text-primary-600 transition-colors"
-            >
-              Ismail Arslan
-            </a>
-            <p className="text-[12px] text-[var(--theme-text-tertiary)]">@enesismail</p>
-          </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {SPECIAL_THANKS.map((person) => (
+            <div key={person.github} className="flex items-center gap-3">
+              <img
+                src={`https://github.com/${person.github}.png`}
+                alt={person.name}
+                className="h-10 w-10 rounded-full ring-2 ring-[var(--theme-border)]"
+              />
+              <div>
+                <a
+                  href={`https://github.com/${person.github}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[13px] font-semibold text-[var(--theme-text)] hover:text-primary-600 transition-colors"
+                >
+                  {person.name}
+                </a>
+                <p className="text-[12px] text-[var(--theme-text-tertiary)]">@{person.github}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </CreditsSection>
 
