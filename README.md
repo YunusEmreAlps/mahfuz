@@ -21,30 +21,36 @@ A minimal, distraction-free Quran companion for the web.
 Mahfuz is a Quran companion designed around simplicity. No clutter, no ads. Just the text and the tools you need to read, listen, learn, and memorize.
 
 - **Three reading modes.** Line-by-line for focused reading, word-by-word with inline translation and transliteration, and a traditional Mushaf page with Karahisari-style illuminated borders.
-- **Focus mode.** Distraction-free reading with annotation canvas, gesture navigation, and wake lock.
-- **Audio playback.** Verse or surah-level playback with real-time word highlighting, gapless preloading, reciter selection, adjustable speed, and lock screen controls via MediaSession.
-- **Memorization.** SM-2 spaced repetition, progress tracking per surah and ayah, daily goals, review sessions, and verification exams.
+- **Two page layouts.** Standard Medina Mushaf (604 pages) and Berkenar layout (600 pages, 20 per juz) — switchable in settings.
+- **Focus mode.** Distraction-free reading with annotation canvas (pen, highlighter, text notes), gesture navigation, and wake lock.
+- **Audio playback.** Verse or surah-level playback with real-time word highlighting, auto-continue to next surah, reciter selection, adjustable speed, and lock screen controls via MediaSession.
+- **Memorization.** Five study modes — Learn (word-by-word), Listen (audio tracking), Test (fill-in-the-blank), Type (transliteration), and Immersive (fullscreen) — all powered by SM-2 spaced repetition with per-verse word accuracy tracking.
+- **Discover.** Linguistic exploration with an Arabic root dictionary, 36 Quranic concepts across 8 categories, i'rab (syntax analysis) with interactive syntax trees, and word-by-word grammar popovers.
 - **Learn to Read.** A 14-stage curriculum from letters to tajweed, with adaptive practice and Quranic word quests.
 - **Library.** Unified hub for courses, learning tracks, and memorization in one place.
+- **7 themes.** Light, Crystal, Sepia, Teal, Dimmed, Dark, and Black — plus 4 reading presets (night, study, mushaf, default).
 - **Offline first.** Three-layer caching with TanStack Query, Dexie IndexedDB, and Service Worker.
-- **Bilingual.** Full Turkish and English interface with auto-detection.
+- **Sync.** Cross-device progress sync with LWW merge for preferences, union merge for bookmarks, and append-only for reviews and badges.
+- **Trilingual.** Turkish, English, and Spanish interface with auto-detection.
 
 ## Roadmap
 
 | Status | Feature |
 |:------:|---------|
-| Done | Reading: three view modes, topic index, command palette |
-| Done | Focus: distraction-free reading with annotations |
-| Done | Audio: verse-level playback with word-level sync |
+| Done | Reading: three view modes, two page layouts, topic index, command palette |
+| Done | Focus: distraction-free reading with pen/highlighter/text annotations |
+| Done | Audio: verse-level playback with word-level sync, auto-continue |
 | Done | Offline: PWA with stale-while-revalidate caching |
 | Done | Authentication: Better Auth with cookie sessions |
-| Done | Memorization: spaced repetition with SM-2 |
+| Done | Memorization: 5-mode word-by-word system with SM-2 |
 | Done | Learn: 14-stage curriculum with side quests |
 | Done | Library: unified courses, tracks, and memorization |
-| Done | i18n: Turkish and English |
+| Done | Discover: root dictionary, concepts, i'rab syntax trees |
+| Done | i18n: Turkish, English, Spanish |
 | Done | Gamification: achievement badges |
 | Done | Performance: virtualization, memoization, lazy loading |
-| Next | Sync: cross-device progress sync |
+| Done | Sync: cross-device progress sync |
+| Done | Reading tools: presets, stats, favorites, bookmarks, history |
 | Next | Share and SEO: social sharing, calligraphy cards, deep links |
 | Next | Mobile: native Android and iOS apps |
 | Next | @mahfuz/sdk: public npm package for Quran data |
@@ -80,10 +86,10 @@ Dev server runs at `http://localhost:3000`.
 | Data | TanStack Query + TanStack Virtual |
 | Styling | Tailwind CSS v4 |
 | Build | Vite 7 + Turborepo |
-| State | Zustand (16 focused stores) |
+| State | Zustand (18 focused stores) |
 | Database | Dexie v4 (IndexedDB) + Drizzle ORM + LibSQL |
 | Auth | Better Auth v1.5 |
-| Deploy | Docker (Node.js SSR) |
+| Deploy | Dokploy (Docker, Node.js SSR) |
 | Package manager | pnpm 9 |
 
 ## Project Structure
@@ -93,14 +99,23 @@ mahfuz-app/
 ├── apps/
 │   └── web/                      Main web application
 │       ├── server.mjs            Node.js SSR server
-│       ├── drizzle/              Database migrations
+│       ├── Dockerfile            Multi-stage Docker build
+│       ├── drizzle/              Database migrations (5 files)
 │       └── src/
-│           ├── components/       UI components
+│           ├── components/       UI components (141 files)
+│           │   ├── audio/        AudioBar, AudioProvider, playlists
+│           │   ├── browse/       Surah list, chapter cards, reading list
+│           │   ├── discover/     Dictionary, concepts, i'rab, grammar
+│           │   ├── focus/        Focus mode layout, annotations, gestures
+│           │   ├── memorization/ 5 study modes, surah selector, results
+│           │   ├── quran/        AyahText, VerseList, MushafPage, WBW
+│           │   ├── settings/     7 extracted setting sections
+│           │   └── ui/           Dialog, Popover, Skeleton, Loading...
 │           ├── hooks/            Custom hooks, query and mutation hooks
-│           ├── locales/          i18n strings (tr.ts, en.ts)
+│           ├── locales/          i18n strings (tr, en, es)
 │           ├── lib/              Utilities, constants, store helpers
-│           ├── routes/           File-based routes (32 routes)
-│           └── stores/           Zustand stores (16 focused stores)
+│           ├── routes/           File-based routes (37 files)
+│           └── stores/           Zustand stores (18 focused stores)
 ├── packages/
 │   ├── api/                      Quran.com API client with IndexedDB cache
 │   ├── audio-engine/             Playback engine with word-level sync
@@ -126,6 +141,10 @@ Service Worker (stale-while-revalidate)
 TanStack Query (in-memory, 24h gcTime)
     ↓
 React Components (Zustand for UI state)
+    ↓
+Sync Engine (push/pull with LWW + union merge)
+    ↓
+Server DB (LibSQL via Drizzle ORM)
 ```
 
 ### Performance
@@ -134,7 +153,7 @@ React Components (Zustand for UI state)
 - **Per-verse audio isolation.** During playback, only the active verse re-renders.
 - **Consolidated Zustand selectors.** Single `useShallow` subscription per component.
 - **React.memo** on all verse, card, and translation components.
-- **Dynamic imports.** Topic index and heavy data lazy-loaded on demand.
+- **Dynamic imports.** Topic index, morphology data, and heavy assets lazy-loaded on demand.
 - **Service Worker caching.** API responses served instantly from cache.
 
 ## Credits
