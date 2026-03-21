@@ -85,7 +85,7 @@ export function DesktopSidebar() {
                     {c.verses_count} {t.browse.versesCount}
                   </span>
                 </div>
-                <span className="arabic-text text-[14px] text-[var(--theme-text-tertiary)]">{c.name_arabic}</span>
+                <span className="arabic-text text-[var(--theme-text-tertiary)]" style={{ fontSize: '14px' }}>{c.name_arabic}</span>
               </Link>
             ))}
           </div>
