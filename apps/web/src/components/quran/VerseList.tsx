@@ -140,11 +140,7 @@ function VirtualizedVerseList({
                   onPlayFromVerse={onPlayFromVerse}
                   onTogglePlayPause={onTogglePlayPause}
                 />
-                <div className="flex items-center justify-center py-1">
-                  <span className="h-px flex-1 bg-[var(--theme-divider)]/30" />
-                  <span className="mx-3 text-[8px] text-[var(--theme-text-quaternary)]/40">✦</span>
-                  <span className="h-px flex-1 bg-[var(--theme-divider)]/30" />
-                </div>
+                <div className="mx-auto max-w-[90%] border-b border-[var(--theme-divider)]/20" />
               </div>
             </div>
           );

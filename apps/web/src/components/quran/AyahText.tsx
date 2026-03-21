@@ -158,7 +158,7 @@ export const AyahText = memo(function AyahText({
       id={`verse-${verse.verse_key}`}
       role="article"
       aria-label={`${t.quranReader.verseLabel} ${verse.verse_key}`}
-      className={`animate-fade-in group px-4 py-6 transition-colors sm:px-6 sm:py-8 ${
+      className={`animate-fade-in group px-4 py-8 transition-colors sm:px-6 sm:py-10 ${
         isCurrentVerse && isAudioPlaying
           ? "bg-[var(--theme-highlight-bg)]"
           : "hover:bg-[var(--theme-hover-bg)]"
@@ -169,8 +169,12 @@ export const AyahText = memo(function AyahText({
           : undefined
       }
     >
-      {/* Action bar */}
-      <div className="mb-3 flex items-center justify-between sm:ml-[44px]">
+      {/* Action bar — visible on hover/focus/active verse */}
+      <div className={`mb-3 flex items-center justify-between transition-opacity sm:ml-[44px] ${
+        isCurrentVerse && isAudioPlaying
+          ? "opacity-100"
+          : "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100"
+      }`}>
         {/* Left group: verse key + play + bookmark */}
         <div className="flex items-center gap-1">
           <span className="mr-1 select-all text-[11px] tabular-nums text-[var(--theme-text-quaternary)]">
@@ -290,61 +294,58 @@ export const AyahText = memo(function AyahText({
           </Popover>
         </div>
       </div>
-      {/* Verse number + Arabic text */}
-      <div className="mb-5 flex items-start gap-4">
-        <span
-          className="mt-2 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--theme-verse-number-bg)] text-[12px] font-semibold tabular-nums text-[var(--theme-text-secondary)]"
-          aria-hidden="true"
-        >
-          {verse.verse_number}
-        </span>
-        <div className="min-w-0 flex-1" dir="rtl">
-          {viewMode === "wordByWord" && verse.words ? (
-            <WordByWord
-              words={verse.words}
-              colorizeWords={prefs.colorizeWords}
-              colors={colors}
-              activeWordPosition={activeWordPos}
-            />
-          ) : (
-            <p className="arabic-text leading-[2.6] text-[var(--theme-text)]" style={{ fontSize: `calc(1.65rem * ${prefs.normalArabicFontSize})` }}>
-              {verse.words
-                ? verse.words
-                    .filter((w) => w.char_type_name === "word")
-                    .map((w, i) => {
-                      const isActiveWord =
-                        activeWordPos !== null && w.position === activeWordPos;
-                      const hasTranslation = prefs.normalHoverShowTranslation && w.translation?.text;
-                      const hasTransliteration = prefs.normalHoverShowTransliteration && w.transliteration?.text;
-                      const hasTooltip = prefs.normalShowWordHover && (hasTranslation || hasTransliteration);
-                      return (
-                        <span
-                          key={w.id}
-                          className={`word-highlight ${isActiveWord ? "active" : ""} ${hasTooltip ? "group/word relative inline-block" : ""}`}
-                          style={
-                            prefs.colorizeWords && colors.length > 0
-                              ? { color: isActiveWord ? undefined : colors[i % colors.length] }
-                              : undefined
-                          }
-                        >
-                          {w.text_uthmani}{" "}
-                          {hasTooltip && (
-                            <span className={`pointer-events-none absolute bottom-full left-1/2 z-30 mb-1 -translate-x-1/2 whitespace-nowrap rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg-elevated)] px-3 py-2 text-center font-sans shadow-[var(--shadow-float)] transition-opacity ${isActiveWord ? "opacity-100" : "opacity-0 group-hover/word:opacity-100 group-active/word:opacity-100"}`} dir="ltr">
-                              {hasTranslation && (
-                                <span className="block font-medium leading-relaxed text-[var(--theme-text)]" style={{ fontSize: `calc(12px * ${prefs.normalHoverTextSize})` }}>{w.translation!.text}</span>
-                              )}
-                              {hasTransliteration && (
-                                <span className="block leading-relaxed text-[var(--theme-text-tertiary)] italic" style={{ fontSize: `calc(11px * ${prefs.normalHoverTextSize})` }}>{w.transliteration!.text}</span>
-                              )}
-                            </span>
-                          )}
-                        </span>
-                      );
-                    })
-                : verse.text_uthmani}
-            </p>
-          )}
-        </div>
+      {/* Arabic text with inline end-of-ayah marker */}
+      <div className="mb-5" dir="rtl">
+        {viewMode === "wordByWord" && verse.words ? (
+          <WordByWord
+            words={verse.words}
+            colorizeWords={prefs.colorizeWords}
+            colors={colors}
+            activeWordPosition={activeWordPos}
+          />
+        ) : (
+          <p className="arabic-text leading-[2.8] text-[var(--theme-text)]" style={{ fontSize: `calc(1.75rem * ${prefs.normalArabicFontSize})` }}>
+            {verse.words
+              ? verse.words
+                  .filter((w) => w.char_type_name === "word")
+                  .map((w, i) => {
+                    const isActiveWord =
+                      activeWordPos !== null && w.position === activeWordPos;
+                    const hasTranslation = prefs.normalHoverShowTranslation && w.translation?.text;
+                    const hasTransliteration = prefs.normalHoverShowTransliteration && w.transliteration?.text;
+                    const hasTooltip = prefs.normalShowWordHover && (hasTranslation || hasTransliteration);
+                    return (
+                      <span
+                        key={w.id}
+                        className={`word-highlight ${isActiveWord ? "active" : ""} ${hasTooltip ? "group/word relative inline-block" : ""}`}
+                        style={
+                          prefs.colorizeWords && colors.length > 0
+                            ? { color: isActiveWord ? undefined : colors[i % colors.length] }
+                            : undefined
+                        }
+                      >
+                        {w.text_uthmani}{" "}
+                        {hasTooltip && (
+                          <span className={`pointer-events-none absolute bottom-full left-1/2 z-30 mb-1 -translate-x-1/2 whitespace-nowrap rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg-elevated)] px-3 py-2 text-center font-sans shadow-[var(--shadow-float)] transition-opacity ${isActiveWord ? "opacity-100" : "opacity-0 group-hover/word:opacity-100 group-active/word:opacity-100"}`} dir="ltr">
+                            {hasTranslation && (
+                              <span className="block font-medium leading-relaxed text-[var(--theme-text)]" style={{ fontSize: `calc(12px * ${prefs.normalHoverTextSize})` }}>{w.translation!.text}</span>
+                            )}
+                            {hasTransliteration && (
+                              <span className="block leading-relaxed text-[var(--theme-text-tertiary)] italic" style={{ fontSize: `calc(11px * ${prefs.normalHoverTextSize})` }}>{w.transliteration!.text}</span>
+                            )}
+                          </span>
+                        )}
+                      </span>
+                    );
+                  })
+              : verse.text_uthmani}
+            {/* End-of-ayah marker */}
+            {" "}
+            <span className="verse-end-marker" aria-label={`${t.quranReader.verseLabel} ${verse.verse_number}`}>
+              <span className="verse-end-number">{verse.verse_number}</span>
+            </span>
+          </p>
+        )}
       </div>
 
       {/* Translation */}

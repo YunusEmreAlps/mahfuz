@@ -1,6 +1,17 @@
-import type { ReadingPreset } from "./constants";
+import { READING_PRESETS, type ReadingPreset } from "./constants";
 import { useDisplayPrefs } from "~/stores/useDisplayPrefs";
 import { useReadingPrefs } from "~/stores/useReadingPrefs";
+
+export function isPresetActive(preset: ReadingPreset): boolean {
+  const display = useDisplayPrefs.getState();
+  const reading = useReadingPrefs.getState();
+  const { overrides } = preset;
+
+  if (overrides.theme !== undefined && display.theme !== overrides.theme) return false;
+  if (overrides.viewMode !== undefined && reading.viewMode !== overrides.viewMode) return false;
+  if (overrides.showTranslation !== undefined && reading.normalShowTranslation !== overrides.showTranslation) return false;
+  return true;
+}
 
 export function applyPreset(preset: ReadingPreset) {
   const { overrides } = preset;
@@ -28,5 +39,15 @@ export function applyPreset(preset: ReadingPreset) {
   }
   if (overrides.mushafShowTranslation !== undefined) {
     useReadingPrefs.getState().setMushafShowTranslation(overrides.mushafShowTranslation);
+  }
+}
+
+/** Toggle preset: if active → revert to default, if inactive → apply */
+export function togglePreset(preset: ReadingPreset) {
+  if (isPresetActive(preset) && preset.id !== "default") {
+    const defaultPreset = READING_PRESETS.find((p) => p.id === "default")!;
+    applyPreset(defaultPreset);
+  } else {
+    applyPreset(preset);
   }
 }

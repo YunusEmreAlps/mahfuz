@@ -205,17 +205,29 @@ function AppLayout() {
   // Show inline search bar on detail pages
   const isDetailPage = !!(surahMatch || pageMatch || juzMatch);
 
-  // Scroll-to-top
+  // Scroll-to-top + auto-hide header on scroll down (reading pages)
   const mainRef = useRef<HTMLElement>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [headerHidden, setHeaderHidden] = useState(false);
+  const lastScrollTop = useRef(0);
 
   useEffect(() => {
     const el = mainRef.current;
     if (!el) return;
-    const onScroll = () => setShowScrollTop(el.scrollTop > 400);
+    const onScroll = () => {
+      const st = el.scrollTop;
+      setShowScrollTop(st > 400);
+      // Auto-hide header on detail pages when scrolling down
+      if (isDetailPage && st > 120) {
+        setHeaderHidden(st > lastScrollTop.current && st - lastScrollTop.current > 5);
+      } else {
+        setHeaderHidden(false);
+      }
+      lastScrollTop.current = st;
+    };
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => el.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [isDetailPage]);
 
   const scrollToTop = useCallback(() => {
     mainRef.current?.scrollTo({ top: 0, behavior: "smooth" });
@@ -224,12 +236,14 @@ function AppLayout() {
   return (
     <TooltipProvider delayDuration={300}>
     <div className="flex h-screen flex-col bg-[var(--theme-bg)]">
-      {/* Dev banner */}
-      <div className="flex items-center justify-center bg-emerald-600 px-4 py-1.5 text-center text-[12px] font-medium text-white sm:text-[13px]">
-        ✨ {t.nav.devBanner}
-      </div>
-      {/* Header */}
-      <header className="glass sticky top-0 z-30 h-[56px] border-b border-[var(--theme-border)] px-3 sm:px-6 lg:h-[64px]">
+      {/* Dev banner — only in development */}
+      {import.meta.env.DEV && (
+        <div className="flex items-center justify-center bg-emerald-600 px-4 py-1.5 text-center text-[12px] font-medium text-white sm:text-[13px]">
+          {t.nav.devBanner}
+        </div>
+      )}
+      {/* Header — auto-hides on scroll down in reading pages */}
+      <header className={`glass sticky top-0 z-30 h-[56px] border-b border-[var(--theme-border)] px-3 transition-transform duration-300 sm:px-6 lg:h-[64px] ${headerHidden ? "-translate-y-full" : "translate-y-0"}`}>
         <div className="relative flex h-full items-center justify-between">
           {/* Left: Logo + Chapter/page context */}
           <div className="flex min-w-0 items-center gap-1">
@@ -565,12 +579,12 @@ function AppLayout() {
       </header>
 
       {/* Inline search bar on detail pages */}
-      {isDetailPage && !paletteOpen && (
+      {isDetailPage && !paletteOpen && !headerHidden && (
         <div className="border-b border-[var(--theme-border)] bg-[var(--theme-bg)] px-4 py-2 sm:px-6">
           <button
             type="button"
             onClick={() => setPaletteOpen(true)}
-            className="mx-auto flex w-full max-w-[960px] items-center gap-2.5 rounded-xl bg-[var(--theme-input-bg)] px-3.5 py-2 text-left transition-colors hover:bg-[var(--theme-bg-primary)] hover:shadow-[var(--shadow-elevated)] lg:max-w-[1200px]"
+            className="mx-auto flex w-full max-w-[720px] items-center gap-2.5 rounded-xl bg-[var(--theme-input-bg)] px-3.5 py-2 text-left transition-colors hover:bg-[var(--theme-bg-primary)] hover:shadow-[var(--shadow-elevated)] lg:max-w-[960px]"
           >
             <svg
               className="h-4 w-4 shrink-0 text-[var(--theme-text-tertiary)]"

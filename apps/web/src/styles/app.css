@@ -46,7 +46,7 @@
   --color-border-light: rgba(0, 0, 0, 0.04);
 
   --font-arabic: "KFGQPC Uthmani Hafs", "Scheherazade New", "Traditional Arabic", serif;
-  --font-sans: "Inter", "SF Pro Display", "SF Pro Text", -apple-system, system-ui, sans-serif;
+  --font-sans: "Figtree", "SF Pro Display", "SF Pro Text", -apple-system, system-ui, sans-serif;
 
   /* Apple depth system */
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04);
@@ -960,6 +960,30 @@ body {
 .verse-end {
   font-family: var(--font-arabic);
   color: var(--color-gold-500);
+}
+
+/* End-of-ayah marker: decorative inline glyph */
+.verse-end-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 36px;
+  height: 36px;
+  margin: 0 2px;
+  vertical-align: middle;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--theme-text-tertiary);
+  border: 1.5px solid var(--theme-divider);
+  border-radius: 50%;
+}
+.verse-end-number {
+  position: relative;
+  z-index: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Smooth scrollbar: Apple style */

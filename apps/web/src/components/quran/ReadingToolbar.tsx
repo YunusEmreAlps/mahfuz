@@ -5,6 +5,7 @@ import { usePreferencesStore, getTranslationFontSizeForMode, getArabicFontSizeFo
 import type { ViewMode, ColorPaletteId, FontGroup } from "~/stores/usePreferencesStore";
 import type { Verse } from "@mahfuz/shared/types";
 import { SegmentedControl } from "~/components/ui/SegmentedControl";
+import { ToggleSwitch } from "~/components/ui/ToggleSwitch";
 import { verseByKeyQueryOptions } from "~/hooks/useVerses";
 import { useTranslatedVerses } from "~/hooks/useTranslatedVerses";
 import { useAudioStore } from "~/stores/useAudioStore";
@@ -15,17 +16,9 @@ import type { Theme } from "~/lib/constants";
 import { useDisplayPrefs } from "~/stores/useDisplayPrefs";
 import { useAudioPrefs } from "~/stores/useAudioPrefs";
 import { CURATED_RECITERS } from "@mahfuz/shared/constants";
-import { applyPreset } from "~/lib/apply-preset";
+import { isPresetActive, togglePreset } from "~/lib/apply-preset";
 
 /* ─ Shared helpers ─ */
-
-function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <button type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)} className={`relative h-[26px] w-[44px] shrink-0 rounded-full transition-colors ${checked ? "bg-primary-600" : "bg-[var(--theme-divider)]"}`}>
-      <span className={`absolute top-[2px] left-[2px] h-[22px] w-[22px] rounded-full bg-white shadow-sm transition-transform ${checked ? "translate-x-[18px]" : "translate-x-0"}`} />
-    </button>
-  );
-}
 
 function CompactSlider({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   return (
@@ -403,15 +396,19 @@ export function ReadingToolbar({ segmentStyle }: { segmentStyle?: boolean } = {}
       <div className="mb-3 flex gap-2 overflow-x-auto scrollbar-none">
         {READING_PRESETS.map((preset, i) => {
           const names = [t.presets?.nightReading ?? "Gece", t.presets?.studyMode ?? "Çalışma", t.presets?.mushafMode ?? "Mushaf", t.presets?.default ?? "Varsayılan"];
-          const icons = ["🌙", "📖", "📗", "⚙️"];
+          const active = isPresetActive(preset);
           return (
             <button
               key={preset.id}
               type="button"
-              onClick={() => applyPreset(preset)}
-              className="flex shrink-0 items-center gap-1 rounded-full bg-[var(--theme-pill-bg)] px-3 py-1.5 text-[11px] font-medium text-[var(--theme-text-secondary)] transition-all hover:bg-[var(--theme-hover-bg)] active:scale-[0.97]"
+              onClick={() => togglePreset(preset)}
+              className={`flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-medium transition-all active:scale-[0.97] ${
+                active
+                  ? "bg-primary-600/15 text-primary-600"
+                  : "bg-[var(--theme-pill-bg)] text-[var(--theme-text-secondary)] hover:bg-[var(--theme-hover-bg)]"
+              }`}
             >
-              <span className="text-[13px]">{icons[i]}</span>
+              <PresetIcon index={i} className="h-3.5 w-3.5" />
               {names[i]}
             </button>
           );
@@ -672,4 +669,31 @@ export function ReadingToolbar({ segmentStyle }: { segmentStyle?: boolean } = {}
       {(open || closing) && typeof document !== "undefined" && createPortal(panelContent, document.body)}
     </>
   );
+}
+
+function PresetIcon({ index, className }: { index: number; className?: string }) {
+  const cn = className ?? "h-4 w-4";
+  switch (index) {
+    case 0: return (
+      <svg className={cn} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+      </svg>
+    );
+    case 1: return (
+      <svg className={cn} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+      </svg>
+    );
+    case 2: return (
+      <svg className={cn} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.5 9h.008M14.5 9h.008M9.5 12h5" />
+      </svg>
+    );
+    default: return (
+      <svg className={cn} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.992 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182M20.992 4.993v4.993" />
+      </svg>
+    );
+  }
 }

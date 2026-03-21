@@ -311,7 +311,7 @@ function SurahView() {
   );
 
   return (
-    <div className="mx-auto max-w-[960px] lg:max-w-[1200px] px-4 py-5 sm:px-6 sm:py-10">
+    <div className="mx-auto max-w-[720px] lg:max-w-[960px] px-4 py-5 sm:px-6 sm:py-10">
       {/* Topic navigation bar (when coming from Fihrist) */}
       {topicParam && resolvedTopic && (
         <TopicNavBar topic={resolvedTopic} topicKey={topicParam} currentSurahId={chapterId} t={t} locale={locale} />
