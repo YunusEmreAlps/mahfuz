@@ -1,9 +1,10 @@
-import { useRef, useEffect, useCallback, useState } from "react";
+import { useRef, useEffect, useCallback, useState, useMemo } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import type { Verse } from "@mahfuz/shared/types";
 import { AyahText } from "./AyahText";
 import { Bismillah } from "./Bismillah";
 import { useAudioStore } from "~/stores/useAudioStore";
+import { usePreferencesStore } from "~/stores/usePreferencesStore";
 
 /** Surahs that do NOT get a Bismillah prefix (Al-Fatiha has it as verse 1, At-Tawbah has none) */
 const NO_BISMILLAH_SURAHS = new Set([1, 9]);
@@ -59,13 +60,27 @@ function VirtualizedVerseList({
     setScrollElement(document.documentElement);
   }, []);
 
+  // Dynamic estimateSize based on reading mode
+  const showWordByWord = usePreferencesStore((s) => s.showWordByWord);
+  const normalShowTranslation = usePreferencesStore((s) => s.normalShowTranslation);
+  const estimateSize = useMemo(() => {
+    let base = 200;
+    if (showWordByWord) base = 320;
+    if (normalShowTranslation) base += 80;
+    return () => base;
+  }, [showWordByWord, normalShowTranslation]);
+
   const virtualizer = useVirtualizer({
     count: verses.length,
-    estimateSize: () => 240,
+    estimateSize,
     overscan: 5,
     getItemKey: (index) => verses[index].id,
     getScrollElement: () => scrollElement,
   });
+
+  // Stable ref for virtualizer to avoid effect dependency issues
+  const virtualizerRef = useRef(virtualizer);
+  virtualizerRef.current = virtualizer;
 
   // Scroll to a specific verse when scrollToVerse changes
   useEffect(() => {
@@ -73,10 +88,10 @@ function VirtualizedVerseList({
     const index = verses.findIndex((v) => v.verse_number === scrollToVerse);
     if (index >= 0) {
       requestAnimationFrame(() => {
-        virtualizer.scrollToIndex(index, { align: "center" });
+        virtualizerRef.current.scrollToIndex(index, { align: "center" });
       });
     }
-  }, [scrollToVerse, verses, virtualizer]);
+  }, [scrollToVerse, verses]);
 
   // Auto-scroll to the currently playing verse (audio tracking)
   const currentVerseKey = useAudioStore((s) => s.currentVerseKey);
@@ -87,18 +102,18 @@ function VirtualizedVerseList({
     const index = verses.findIndex((v) => v.verse_key === currentVerseKey);
     if (index >= 0) {
       requestAnimationFrame(() => {
-        virtualizer.scrollToIndex(index, { align: "center", behavior: "smooth" });
+        virtualizerRef.current.scrollToIndex(index, { align: "center", behavior: "smooth" });
       });
     }
-  }, [currentVerseKey, playbackState, verses, virtualizer]);
+  }, [currentVerseKey, playbackState, verses]);
 
   const measureRef = useCallback(
     (node: HTMLDivElement | null) => {
       if (node) {
-        virtualizer.measureElement(node);
+        virtualizerRef.current.measureElement(node);
       }
     },
-    [virtualizer],
+    [],
   );
 
   const items = virtualizer.getVirtualItems();

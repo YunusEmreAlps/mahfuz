@@ -366,12 +366,7 @@ export function UnifiedReader({
     return () => observer.disconnect();
   }, [source, viewMode, currentId, visitVerse, chapter, locale]);
 
-  // Auto-scroll to playing verse
-  useEffect(() => {
-    if (!audio.currentVerseKey || audio.playbackState !== "playing") return;
-    const el = document.getElementById(`verse-${audio.currentVerseKey}`);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, [audio.currentVerseKey, audio.playbackState]);
+  // Auto-scroll to playing verse — handled by VerseList virtualizer, no duplicate here
 
   // Header info
   const headerTitle = useMemo(() => {

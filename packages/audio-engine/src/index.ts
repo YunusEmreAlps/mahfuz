@@ -466,8 +466,13 @@ export class AudioEngine {
 
   // --- Word-level sync via rAF ---
 
+  private _lastWordPosition: number | null = null;
+  private _lastTimeUpdateMs = 0;
+
   private startWordSync(): void {
     this.stopWordSync();
+    this._lastWordPosition = null;
+    this._lastTimeUpdateMs = 0;
     const tick = () => {
       if (this._destroyed) return;
       if (this._chapterMode) {
@@ -475,10 +480,15 @@ export class AudioEngine {
       } else {
         this.syncWord();
       }
-      this.callbacks.onTimeUpdate(
-        this.audio.currentTime * 1000,
-        this.audio.duration * 1000 || 0,
-      );
+      // Throttle onTimeUpdate to ~4fps (every 250ms) instead of 60fps
+      const nowMs = this.audio.currentTime * 1000;
+      if (Math.abs(nowMs - this._lastTimeUpdateMs) >= 250) {
+        this._lastTimeUpdateMs = nowMs;
+        this.callbacks.onTimeUpdate(
+          nowMs,
+          this.audio.duration * 1000 || 0,
+        );
+      }
       this.rafId = requestAnimationFrame(tick);
     };
     this.rafId = requestAnimationFrame(tick);
@@ -525,11 +535,15 @@ export class AudioEngine {
       return;
     }
 
-    // Word-level sync within current verse
+    // Word-level sync within current verse — only fire when position changes
     if (currentTiming.segments && currentTiming.segments.length > 0) {
       const position = this.findWordPosition(currentTiming.segments, timeMs);
-      this.callbacks.onWordPositionChange(position);
-    } else {
+      if (position !== this._lastWordPosition) {
+        this._lastWordPosition = position;
+        this.callbacks.onWordPositionChange(position);
+      }
+    } else if (this._lastWordPosition !== null) {
+      this._lastWordPosition = null;
       this.callbacks.onWordPositionChange(null);
     }
   }
@@ -539,13 +553,19 @@ export class AudioEngine {
     if (this.currentIndex < 0) return;
     const verse = this.playlist[this.currentIndex];
     if (!verse.segments || verse.segments.length === 0) {
-      this.callbacks.onWordPositionChange(null);
+      if (this._lastWordPosition !== null) {
+        this._lastWordPosition = null;
+        this.callbacks.onWordPositionChange(null);
+      }
       return;
     }
 
     const timeMs = this.audio.currentTime * 1000;
     const position = this.findWordPosition(verse.segments, timeMs);
-    this.callbacks.onWordPositionChange(position);
+    if (position !== this._lastWordPosition) {
+      this._lastWordPosition = position;
+      this.callbacks.onWordPositionChange(position);
+    }
   }
 
   /** Binary search to find active word at given time */

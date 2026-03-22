@@ -47,20 +47,20 @@ export const AyahText = memo(function AyahText({
   const isWbw = viewMode === "metin" && prefs.showWordByWord;
   const showTranslation = isWbw ? prefs.wbwShowTranslation : prefs.normalShowTranslation;
 
-  // Audio selectors — only re-render when THIS verse's audio state changes
-  const isCurrentVerse = useAudioStore((s) => s.currentVerseKey === verse.verse_key);
-  const activeWordPos = useAudioStore((s) =>
-    s.currentVerseKey === verse.verse_key && s.playbackState === "playing"
-      ? s.currentWordPosition
-      : null
-  );
-  const isAudioPlaying = useAudioStore((s) =>
-    s.currentVerseKey === verse.verse_key &&
-    (s.playbackState === "playing" || s.playbackState === "paused")
-  );
-  const playbackState = useAudioStore((s) =>
-    s.currentVerseKey === verse.verse_key ? s.playbackState : null
-  );
+  // Audio — single consolidated selector to minimize re-renders
+  const audioState = useAudioStore(useCallback((s) => {
+    if (s.currentVerseKey !== verse.verse_key) {
+      return null;
+    }
+    return {
+      playbackState: s.playbackState,
+      wordPosition: s.playbackState === "playing" ? s.currentWordPosition : null,
+    };
+  }, [verse.verse_key]));
+  const isCurrentVerse = audioState !== null;
+  const activeWordPos = audioState?.wordPosition ?? null;
+  const isAudioPlaying = audioState !== null && (audioState.playbackState === "playing" || audioState.playbackState === "paused");
+  const playbackState = audioState?.playbackState ?? null;
 
   // Bookmark
   const isBookmarked = useVerseBookmarks((s) => s.bookmarks.some((b) => b.verseKey === verse.verse_key));
