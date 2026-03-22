@@ -37,34 +37,20 @@ export const RootCard = memo(function RootCard({ entry, maxCount, onClick }: Roo
     <button
       type="button"
       onClick={onClick}
-      className="group relative flex flex-col overflow-hidden rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-bg-primary)] text-left transition-all duration-200 hover:border-primary-400/60 hover:shadow-[0_4px_24px_-4px_rgba(var(--color-primary-500-rgb,99,102,241),0.12)] active:scale-[0.97]"
+      className="flex items-center gap-3 rounded-xl bg-[var(--theme-bg-primary)] px-3 py-2.5 text-left transition-colors hover:bg-[var(--theme-hover-bg)] active:scale-[0.98] sm:gap-4 sm:px-4 sm:py-3"
     >
-      {/* Top accent line */}
-      <div
-        className="h-[3px] w-full bg-gradient-to-r from-primary-500/80 via-primary-400/40 to-transparent transition-opacity duration-200 group-hover:opacity-100"
-        style={{ opacity: normalizedFreq > 30 ? 1 : 0.3 }}
-      />
+      {/* Arabic root */}
+      <span
+        className="arabic-text w-16 shrink-0 text-center text-[20px] font-bold leading-none text-[var(--theme-text)] sm:w-20 sm:text-[22px]"
+        dir="rtl"
+      >
+        {entry.letters}
+      </span>
 
-      <div className="flex flex-1 flex-col p-4 sm:p-5">
-        {/* Root letters */}
-        <div className="mb-0.5 flex w-full items-start justify-between gap-2">
-          <span
-            className="arabic-text text-[28px] font-bold leading-none text-[var(--theme-text)] transition-colors duration-200 group-hover:text-primary-600 sm:text-[32px]"
-            dir="rtl"
-          >
-            {entry.letters}
-          </span>
-          <span
-            className="mt-1 shrink-0 rounded-md bg-[var(--theme-hover-bg)] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-[var(--theme-text-quaternary)]"
-            style={{ fontFamily: "var(--font-sans)" }}
-          >
-            {transliterateRoot(entry.root)}
-          </span>
-        </div>
-
-        {/* Meaning */}
+      {/* Meaning + transliteration */}
+      <div className="min-w-0 flex-1">
         <p
-          className={`mb-auto line-clamp-2 min-h-[34px] text-[12.5px] leading-relaxed sm:text-[13px] ${
+          className={`truncate text-[13px] leading-snug ${
             hasMeaning
               ? "text-[var(--theme-text-secondary)]"
               : "italic text-[var(--theme-text-quaternary)]"
@@ -72,25 +58,21 @@ export const RootCard = memo(function RootCard({ entry, maxCount, onClick }: Roo
         >
           {meaning || t.discover.noMeaning}
         </p>
+        <span className="text-[10px] uppercase tracking-wider text-[var(--theme-text-quaternary)]">
+          {transliterateRoot(entry.root)}
+        </span>
+      </div>
 
-        {/* Stats footer */}
-        <div className="mt-4 flex items-center gap-3">
-          {/* Frequency mini-bar */}
-          <div className="flex-1">
-            <div className="h-[5px] w-full overflow-hidden rounded-full bg-[var(--theme-hover-bg)]">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-primary-600 to-primary-400 transition-all duration-300"
-                style={{ width: `${normalizedFreq}%` }}
-              />
-            </div>
-          </div>
-          {/* Count badge */}
-          <span
-            className="shrink-0 text-[11px] font-bold tabular-nums text-primary-600"
-            style={{ fontFamily: "var(--font-sans)" }}
-          >
-            {entry.count}
-          </span>
+      {/* Frequency */}
+      <div className="flex shrink-0 flex-col items-end gap-1">
+        <span className="text-[12px] font-semibold tabular-nums text-primary-600">
+          {entry.count}
+        </span>
+        <div className="h-1 w-10 overflow-hidden rounded-full bg-[var(--theme-bg)]">
+          <div
+            className="h-full rounded-full bg-primary-600"
+            style={{ width: `${normalizedFreq}%` }}
+          />
         </div>
       </div>
     </button>
