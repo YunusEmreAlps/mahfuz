@@ -121,6 +121,43 @@ function CoursesTab({ userId }: { userId: string }) {
   const { unlockedStages } = useStageUnlockStatus(userId);
   const { hasPickedLearnLevel, selectedLearnLevel, setHasPickedLearnLevel, setSelectedLearnLevel } = useAppUI();
   const [showLevelPicker, setShowLevelPicker] = useState(false);
+  const [expandedLevel, setExpandedLevel] = useState<number | null>(null);
+
+  // ALL hooks MUST be above any early return (React rules of hooks)
+  const levelProgress = useMemo(() => {
+    const result: Record<number, { total: number; completed: number }> = {};
+    for (const level of LEVELS) {
+      const stages = getStagesByLevel(level.id);
+      let total = 0;
+      let completed = 0;
+      for (const stage of stages) {
+        total += stage.lessons.length;
+        const sp = stageProgress.get(stage.id);
+        completed += sp?.completed || 0;
+      }
+      result[level.id] = { total, completed };
+    }
+    return result;
+  }, [stageProgress]);
+
+  // Determine which level is "current" (first non-complete, or the selected one)
+  const currentLevelId = useMemo(() => {
+    // Find the first level that isn't fully complete
+    for (const level of LEVELS) {
+      const lp = levelProgress[level.id];
+      if (!lp || lp.completed < lp.total || lp.total === 0) {
+        return level.id;
+      }
+    }
+    return selectedLearnLevel || 4; // all done? show last
+  }, [levelProgress, selectedLearnLevel]);
+
+  // Auto-expand current level
+  useEffect(() => {
+    if (expandedLevel === null) {
+      setExpandedLevel(currentLevelId);
+    }
+  }, [currentLevelId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Show level picker if user hasn't picked yet
   if (!hasPickedLearnLevel || showLevelPicker) {
@@ -145,23 +182,6 @@ function CoursesTab({ userId }: { userId: string }) {
       </div>
     );
   }
-
-  // Compute level progress
-  const levelProgress = useMemo(() => {
-    const result: Record<number, { total: number; completed: number }> = {};
-    for (const level of LEVELS) {
-      const stages = getStagesByLevel(level.id);
-      let total = 0;
-      let completed = 0;
-      for (const stage of stages) {
-        total += stage.lessons.length;
-        const sp = stageProgress.get(stage.id);
-        completed += sp?.completed || 0;
-      }
-      result[level.id] = { total, completed };
-    }
-    return result;
-  }, [stageProgress]);
 
   return (
     <>
@@ -206,7 +226,7 @@ function CoursesTab({ userId }: { userId: string }) {
         </button>
       </div>
 
-      {/* Level sections */}
+      {/* Roadmap */}
       {isLoading ? (
         <div className="space-y-6">
           {Array.from({ length: 2 }).map((_, i) => (
@@ -221,90 +241,145 @@ function CoursesTab({ userId }: { userId: string }) {
           ))}
         </div>
       ) : (
-        <div className="space-y-8">
-          {LEVELS.map((level) => {
-            const stages = getStagesByLevel(level.id);
-            const lp = levelProgress[level.id];
-            const progress = lp.total > 0 ? Math.round((lp.completed / lp.total) * 100) : 0;
-            const isComplete = lp.completed >= lp.total && lp.total > 0;
-            const title = resolveNestedKey(t.learn as Record<string, any>, level.titleKey) || level.titleKey;
-            const desc = resolveNestedKey(t.learn as Record<string, any>, level.descriptionKey) || level.descriptionKey;
+        <div className="relative">
+          {/* Vertical line connecting levels */}
+          <div className="absolute left-[19px] top-6 bottom-6 w-0.5 bg-[var(--theme-border)]" />
 
-            return (
-              <section key={level.id}>
-                {/* Level header */}
-                <div className="mb-3 flex items-center gap-3">
-                  <EmojiIcon emoji={level.icon} className="h-5 w-5" />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-[16px] font-bold text-[var(--theme-text)]">
-                        {title}
-                      </h3>
-                      {isComplete && (
-                        <span className="rounded-full bg-primary-100 px-2 py-0.5 text-[10px] font-semibold text-primary-700 dark:bg-primary-900/40 dark:text-primary-400">
-                          <EmojiIcon emoji="✓" className="h-2.5 w-2.5" />
-                        </span>
+          <div className="space-y-0">
+            {LEVELS.map((level, idx) => {
+              const stages = getStagesByLevel(level.id);
+              const lp = levelProgress[level.id];
+              const progress = lp.total > 0 ? Math.round((lp.completed / lp.total) * 100) : 0;
+              const isComplete = lp.completed >= lp.total && lp.total > 0;
+              const isCurrent = level.id === currentLevelId;
+              const isExpanded = expandedLevel === level.id;
+              const isLocked = level.id > currentLevelId && !isComplete;
+              const title = resolveNestedKey(t.learn as Record<string, any>, level.titleKey) || level.titleKey;
+              const desc = resolveNestedKey(t.learn as Record<string, any>, level.descriptionKey) || level.descriptionKey;
+
+              return (
+                <div key={level.id} className="relative">
+                  {/* Level node — clickable header */}
+                  <button
+                    onClick={() => setExpandedLevel(isExpanded ? null : level.id)}
+                    className="group flex w-full items-center gap-3 py-3 text-left"
+                  >
+                    {/* Circle node on the timeline */}
+                    <div
+                      className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 transition-all ${
+                        isComplete
+                          ? "border-primary-500 bg-primary-500 text-white"
+                          : isCurrent
+                            ? "border-primary-500 bg-[var(--theme-bg-primary)] text-primary-600 shadow-[0_0_0_4px_rgba(var(--color-primary-500)/0.15)]"
+                            : "border-[var(--theme-border)] bg-[var(--theme-bg)] text-[var(--theme-text-quaternary)]"
+                      }`}
+                    >
+                      {isComplete ? (
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : (
+                        <EmojiIcon emoji={level.icon} className="h-5 w-5" />
                       )}
                     </div>
-                    <p className="text-[12px] text-[var(--theme-text-tertiary)]">{desc}</p>
-                  </div>
-                  <span className="text-[12px] font-medium text-[var(--theme-text-tertiary)]">
-                    {lp.completed}/{lp.total}
-                  </span>
-                </div>
 
-                {/* Level progress bar */}
-                <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-[var(--theme-bg)]">
-                  <div
-                    className={`h-full rounded-full transition-all ${isComplete ? "bg-primary-500" : "bg-primary-600"}`}
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
+                    {/* Level info */}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className={`text-[15px] font-bold ${isLocked ? "text-[var(--theme-text-tertiary)]" : "text-[var(--theme-text)]"}`}>
+                          {title}
+                        </h3>
+                        {isCurrent && !isComplete && (
+                          <span className="rounded-full bg-primary-100 px-2 py-0.5 text-[10px] font-semibold text-primary-700 dark:bg-primary-900/40 dark:text-primary-400">
+                            {t.learn.levels.roadmapCurrent}
+                          </span>
+                        )}
+                        {isComplete && (
+                          <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">
+                            {t.learn.levels.roadmapCompleted}
+                          </span>
+                        )}
+                      </div>
+                      <p className={`text-[12px] ${isLocked ? "text-[var(--theme-text-quaternary)]" : "text-[var(--theme-text-tertiary)]"}`}>
+                        {desc}
+                      </p>
+                    </div>
 
-                {/* Stage cards grid */}
-                <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
-                  {stages.map((stage) => {
-                    const sp = stageProgress.get(stage.id);
-                    return (
-                      <LibraryCourseCard
-                        key={stage.id}
-                        stageId={stage.id}
-                        titleKey={stage.titleKey}
-                        descriptionKey={stage.descriptionKey}
-                        lessonCount={stage.lessons.length}
-                        completedCount={sp?.completed || 0}
-                        isUnlocked={unlockedStages.has(stage.id)}
-                      />
-                    );
-                  })}
-                </div>
+                    {/* Progress + chevron */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-[12px] font-medium tabular-nums text-[var(--theme-text-tertiary)]">
+                        {lp.completed}/{lp.total}
+                      </span>
+                      <svg
+                        className={`h-4 w-4 text-[var(--theme-text-quaternary)] transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </button>
 
-                {/* Level exam + practice buttons */}
-                <div className="mt-4 flex gap-3">
-                  <Link
-                    to="/learn/level/$levelId/exam"
-                    params={{ levelId: String(level.id) }}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg-primary)] px-4 py-3 text-[14px] font-medium text-[var(--theme-text-secondary)] transition-all hover:bg-[var(--theme-hover-bg)] hover:shadow-sm active:scale-[0.97]"
-                  >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    {t.learn.levels.exam}
-                  </Link>
-                  <Link
-                    to="/learn/level/$levelId/practice"
-                    params={{ levelId: String(level.id) }}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg-primary)] px-4 py-3 text-[14px] font-medium text-[var(--theme-text-secondary)] transition-all hover:bg-[var(--theme-hover-bg)] hover:shadow-sm active:scale-[0.97]"
-                  >
-                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    {t.learn.levels.practice}
-                  </Link>
+                  {/* Expanded content — stages + buttons */}
+                  {isExpanded && (
+                    <div className="ml-[46px] animate-fade-in pb-4">
+                      {/* Level progress bar */}
+                      <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-[var(--theme-bg)]">
+                        <div
+                          className={`h-full rounded-full transition-all ${isComplete ? "bg-primary-500" : "bg-primary-600"}`}
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+
+                      {/* Stage cards grid */}
+                      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+                        {stages.map((stage) => {
+                          const sp = stageProgress.get(stage.id);
+                          return (
+                            <LibraryCourseCard
+                              key={stage.id}
+                              stageId={stage.id}
+                              titleKey={stage.titleKey}
+                              descriptionKey={stage.descriptionKey}
+                              lessonCount={stage.lessons.length}
+                              completedCount={sp?.completed || 0}
+                              isUnlocked={unlockedStages.has(stage.id)}
+                            />
+                          );
+                        })}
+                      </div>
+
+                      {/* Level exam + practice buttons */}
+                      <div className="mt-4 flex gap-3">
+                        <Link
+                          to="/learn/level/$levelId/exam"
+                          params={{ levelId: String(level.id) }}
+                          className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg-primary)] px-4 py-3 text-[14px] font-medium text-[var(--theme-text-secondary)] transition-all hover:bg-[var(--theme-hover-bg)] hover:shadow-sm active:scale-[0.97]"
+                        >
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          {t.learn.levels.examWithName(title)}
+                        </Link>
+                        <Link
+                          to="/learn/level/$levelId/practice"
+                          params={{ levelId: String(level.id) }}
+                          className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-bg-primary)] px-4 py-3 text-[14px] font-medium text-[var(--theme-text-secondary)] transition-all hover:bg-[var(--theme-hover-bg)] hover:shadow-sm active:scale-[0.97]"
+                        >
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          {t.learn.levels.practiceWithName(title)}
+                        </Link>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </section>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       )}
     </>
