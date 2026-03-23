@@ -8,6 +8,7 @@ import { memorizeMessages } from "./memorize";
 import { media } from "./media";
 import { settingsMessages } from "./settings";
 import { discoverMessages } from "./discover";
+import { kidsMessages } from "./kids";
 
 export const tr = {
   ...core,
@@ -20,5 +21,6 @@ export const tr = {
   ...media,
   ...settingsMessages,
   ...discoverMessages,
+  ...kidsMessages,
 } as const;
 
