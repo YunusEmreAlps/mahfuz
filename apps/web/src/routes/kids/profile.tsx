@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "~/hooks/useTranslation";
 import { useKidsStore, useActiveKidsProfile } from "~/stores/useKidsStore";
@@ -276,16 +276,27 @@ function ProfileManager({ onClose }: { onClose: () => void }) {
 
 function ProfileSelector() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const profiles = useKidsStore((s) => s.profiles);
   const setActiveProfile = useKidsStore((s) => s.setActiveProfile);
-  const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState(() => profiles.length === 0);
+
+  const handleSelectProfile = (p: KidsProfileType) => {
+    setActiveProfile(p);
+    navigate({ to: "/kids/map" });
+  };
+
+  const handleProfileCreated = () => {
+    setShowForm(false);
+    navigate({ to: "/kids/map" });
+  };
 
   return (
     <div className="mx-auto max-w-lg px-4 py-10">
       <h1 className="mb-2 text-center text-2xl font-bold text-emerald-700">
         {t.kids.profile.title}
       </h1>
-      {profiles.length === 0 && (
+      {profiles.length === 0 && !showForm && (
         <p className="mb-6 text-center text-sm text-gray-400">{t.kids.profile.noProfiles}</p>
       )}
 
@@ -295,7 +306,7 @@ function ProfileSelector() {
           {profiles.map((p) => (
             <button
               key={p.id}
-              onClick={() => setActiveProfile(p)}
+              onClick={() => handleSelectProfile(p)}
               className="flex w-full items-center gap-4 rounded-2xl bg-white p-4 shadow-sm transition-transform active:scale-[0.97]"
             >
               <AvatarDisplay name={p.name} avatarId={p.avatarId} level={1} size="sm" />
@@ -312,8 +323,8 @@ function ProfileSelector() {
       {/* Add child */}
       {showForm ? (
         <AddChildForm
-          onSave={() => setShowForm(false)}
-          onCancel={() => setShowForm(false)}
+          onSave={handleProfileCreated}
+          onCancel={() => profiles.length > 0 ? setShowForm(false) : navigate({ to: "/browse" })}
         />
       ) : (
         <button

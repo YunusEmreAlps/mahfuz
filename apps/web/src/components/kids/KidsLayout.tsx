@@ -98,6 +98,21 @@ export function KidsLayout() {
     return { to: "/browse" as const, label: t.kids.nav.backToApp };
   }, [currentPath, t]);
 
+  // No profiles at all → redirect to profile creation
+  const noProfiles = profiles.length === 0;
+  useEffect(() => {
+    if (noProfiles) {
+      navigate({ to: "/kids/profile", replace: true });
+    }
+  }, [noProfiles, navigate]);
+
+  // No active profile but profiles exist → also redirect to pick one
+  useEffect(() => {
+    if (!noProfiles && !profile && !currentPath.includes("/kids/profile")) {
+      navigate({ to: "/kids/profile", replace: true });
+    }
+  }, [noProfiles, profile, currentPath, navigate]);
+
   const timeLimitReached = dailyTimeLimit > 0 && sessionTimeSpent >= dailyTimeLimit * 60;
 
   if (timeLimitReached) {
@@ -112,6 +127,18 @@ export function KidsLayout() {
         >
           {t.kids.nav.backToApp}
         </Link>
+      </div>
+    );
+  }
+
+  // No profile yet — show only the profile page (no header/tabbar/mascot)
+  if (!profile) {
+    return (
+      <div className="kids-zone flex min-h-screen flex-col" style={{ background: "var(--kids-bg, linear-gradient(135deg, #fff7ed, #ecfdf5, #fef3c7))" }}>
+        <KidsBackground />
+        <main className="flex-1">
+          <Outlet />
+        </main>
       </div>
     );
   }
