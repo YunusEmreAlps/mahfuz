@@ -21,17 +21,18 @@ A minimal, distraction-free Quran companion for the web.
 Mahfuz is a Quran companion designed around simplicity. No clutter, no ads. Just the text and the tools you need to read, listen, learn, and memorize.
 
 - **Three reading modes.** Line-by-line for focused reading, word-by-word with inline translation and transliteration, and a traditional Mushaf page with Karahisari-style illuminated borders.
-- **Two page layouts.** Standard Medina Mushaf (604 pages) and Berkenar layout (600 pages, 20 per juz) — switchable in settings.
+- **Two page layouts.** Standard Medina Mushaf (604 pages) and Berkenar layout (600 pages, 20 per juz), switchable in settings.
 - **Focus mode.** Distraction-free reading with annotation canvas (pen, highlighter, text notes), gesture navigation, and wake lock.
 - **Audio playback.** Verse or surah-level playback with real-time word highlighting, auto-continue to next surah, reciter selection, adjustable speed, and lock screen controls via MediaSession.
-- **Memorization.** Five study modes — Learn (word-by-word), Listen (audio tracking), Test (fill-in-the-blank), Type (transliteration), and Immersive (fullscreen) — all powered by SM-2 spaced repetition with per-verse word accuracy tracking.
+- **Memorization.** Five study modes: Learn (word-by-word), Listen (audio tracking), Test (fill-in-the-blank), Type (transliteration), and Immersive (fullscreen). Powered by SM-2 spaced repetition with per-verse word accuracy tracking.
 - **Discover.** Linguistic exploration with an Arabic root dictionary, 36 Quranic concepts across 8 categories, i'rab (syntax analysis) with interactive syntax trees, and word-by-word grammar popovers.
 - **Learn to Read.** A 14-stage curriculum from letters to tajweed, with adaptive practice and Quranic word quests.
+- **Kids.** Child-friendly Arabic letter learning with animated introductions, stroke tracing, sound matching, letter hunt games, and quizzes. Multi-profile support for families.
 - **Library.** Unified hub for courses, learning tracks, and memorization in one place.
-- **7 themes.** Light, Crystal, Sepia, Teal, Dimmed, Dark, and Black — plus 4 reading presets (night, study, mushaf, default).
+- **7 themes.** Light, Crystal, Sepia, Teal, Dimmed, Dark, and Black, plus 4 reading presets (night, study, mushaf, default).
 - **Offline first.** Three-layer caching with TanStack Query, Dexie IndexedDB, and Service Worker.
 - **Sync.** Cross-device progress sync with LWW merge for preferences, union merge for bookmarks, and append-only for reviews and badges.
-- **Trilingual.** Turkish, English, and Spanish interface with auto-detection.
+- **5 languages.** Turkish, English, Spanish, French, and Arabic interface with auto-detection.
 
 ## Roadmap
 
@@ -46,7 +47,8 @@ Mahfuz is a Quran companion designed around simplicity. No clutter, no ads. Just
 | Done | Learn: 14-stage curriculum with side quests |
 | Done | Library: unified courses, tracks, and memorization |
 | Done | Discover: root dictionary, concepts, i'rab syntax trees |
-| Done | i18n: Turkish, English, Spanish |
+| Done | Kids: Arabic letter learning with tracing, games, quizzes |
+| Done | i18n: Turkish, English, Spanish, French, Arabic |
 | Done | Gamification: achievement badges |
 | Done | Performance: virtualization, memoization, lazy loading |
 | Done | Sync: cross-device progress sync |
@@ -107,12 +109,13 @@ mahfuz-app/
 │           │   ├── browse/       Surah list, chapter cards, reading list
 │           │   ├── discover/     Dictionary, concepts, i'rab, grammar
 │           │   ├── focus/        Focus mode layout, annotations, gestures
+│           │   ├── kids/          Letter learning, tracing, games, quizzes
 │           │   ├── memorization/ 5 study modes, surah selector, results
 │           │   ├── quran/        AyahText, VerseList, MushafPage, WBW
 │           │   ├── settings/     7 extracted setting sections
 │           │   └── ui/           Dialog, Popover, Skeleton, Loading...
 │           ├── hooks/            Custom hooks, query and mutation hooks
-│           ├── locales/          i18n strings (tr, en, es)
+│           ├── locales/          i18n strings (tr, en, es, fr, ar)
 │           ├── lib/              Utilities, constants, store helpers
 │           ├── routes/           File-based routes (37 files)
 │           └── stores/           Zustand stores (18 focused stores)
