@@ -101,22 +101,21 @@ export function BookmarkRow({
       >
         <Link
           {...linkTo}
-          className="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px]"
+          className="flex items-center gap-2.5 px-3 py-2.5 min-h-[44px] group/row"
         >
           {/* Surah number badge */}
           <span className="w-7 h-7 rounded-md bg-[var(--color-surface)] flex items-center justify-center text-[11px] font-medium text-[var(--color-text-secondary)] shrink-0">
             {surahId}
           </span>
 
-          {/* Name + verse */}
+          {/* Name + verse + Arabic — linked highlight on hover */}
           <span className="flex-1 min-w-0 text-sm truncate">
-            <span className="font-medium">{surahName}</span>
+            <span className="font-medium transition-colors group-has-[.ar-name:hover]/row:text-[var(--color-accent)]">{surahName}</span>
             <span className="text-[var(--color-text-secondary)]"> · {t.common.verse} {ayahNumber}</span>
           </span>
 
-          {/* Arabic name */}
           {surahNameArabic && (
-            <span className="text-sm shrink-0 text-[var(--color-text-secondary)]" dir="rtl" style={{ fontFamily: "var(--font-arabic)" }}>
+            <span className="ar-name text-sm shrink-0 text-[var(--color-text-secondary)] transition-colors hover:text-[var(--color-accent)]" dir="rtl" style={{ fontFamily: "var(--font-arabic)" }}>
               {surahNameArabic}
             </span>
           )}

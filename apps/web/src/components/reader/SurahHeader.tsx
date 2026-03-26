@@ -4,6 +4,8 @@
  */
 
 import { PlaySurahButton } from "./PlaySurahButton";
+import { getSurahLabel } from "~/lib/surah-names-i18n";
+import { useTranslation } from "~/hooks/useTranslation";
 
 interface SurahHeaderProps {
   surahId?: number;
@@ -13,6 +15,8 @@ interface SurahHeaderProps {
 }
 
 export function SurahHeader({ surahId, nameArabic, nameSimple, showBismillah }: SurahHeaderProps) {
+  const { locale } = useTranslation();
+  const label = (surahId ? getSurahLabel(surahId, locale) : "") || nameSimple;
   return (
     <div className="text-center py-6">
       {/* Sure adı + play butonu */}
@@ -23,7 +27,7 @@ export function SurahHeader({ surahId, nameArabic, nameSimple, showBismillah }: 
         <span className="text-xl" dir="rtl" style={{ fontFamily: "var(--font-arabic)" }}>
           {nameArabic}
         </span>
-        <span className="text-sm text-[var(--color-text-secondary)]">{nameSimple}</span>
+        <span className="text-sm text-[var(--color-text-secondary)]">{label}</span>
       </div>
 
       {/* Besmele */}

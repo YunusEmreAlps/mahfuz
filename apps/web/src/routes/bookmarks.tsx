@@ -8,6 +8,7 @@ import { useState, useMemo } from "react";
 import { useBookmarksStore } from "~/stores/bookmarks.store";
 import { useSurahs, surahsQueryOptions } from "~/hooks/useQuranQuery";
 import { BookmarkRow } from "~/components/BookmarkRow";
+import { getSurahLabel } from "~/lib/surah-names-i18n";
 import { useTranslation } from "~/hooks/useTranslation";
 
 export const Route = createFileRoute("/bookmarks")({
@@ -18,7 +19,7 @@ export const Route = createFileRoute("/bookmarks")({
 type SortMode = "surah" | "recent";
 
 function BookmarksPage() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const bookmarks = useBookmarksStore((s) => s.bookmarks);
   const { data: surahs } = useSurahs();
   const surahMap = useMemo(() => new Map(surahs.map((s) => [s.id, s])), [surahs]);
@@ -117,7 +118,7 @@ function BookmarksPage() {
                   surahId={bm.surahId}
                   ayahNumber={bm.ayahNumber}
                   pageNumber={bm.pageNumber}
-                  surahName={surah?.nameSimple ?? `${t.common.surah} ${bm.surahId}`}
+                  surahName={getSurahLabel(bm.surahId, locale) || surah?.nameSimple || `${t.common.surah} ${bm.surahId}`}
                   surahNameArabic={surah?.nameArabic}
                   showDivider={i < bms.length - 1}
                 />
@@ -136,7 +137,7 @@ function BookmarksPage() {
                 surahId={bm.surahId}
                 ayahNumber={bm.ayahNumber}
                 pageNumber={bm.pageNumber}
-                surahName={surah?.nameSimple ?? `${t.common.surah} ${bm.surahId}`}
+                surahName={getSurahLabel(bm.surahId, locale) || surah?.nameSimple || `${t.common.surah} ${bm.surahId}`}
                 surahNameArabic={surah?.nameArabic}
                 showDivider={i < recentSorted.length - 1}
               />

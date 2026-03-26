@@ -13,6 +13,7 @@ import { MahfuzLogo } from "~/components/icons/MahfuzLogo";
 import { SettingsButton } from "~/components/SettingsButton";
 import { useTranslation } from "~/hooks/useTranslation";
 import { surahSlug } from "~/lib/surah-slugs";
+import { getSurahLabel } from "~/lib/surah-names-i18n";
 
 export const Route = createFileRoute("/")({
   loader: ({ context }) => context.queryClient.ensureQueryData(surahsQueryOptions()),
@@ -55,7 +56,7 @@ function HomePageSkeleton() {
 
 function HomePage() {
   const { session } = Route.useRouteContext();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const lastPosition = useReadingStore((s) => s.lastPosition);
   const readingMode = useSettingsStore((s) => s.readingMode);
   const bookmarks = useBookmarksStore((s) => s.bookmarks);
@@ -132,7 +133,7 @@ function HomePage() {
             <div className="flex-1 min-w-0">
               <p className="text-xs text-[var(--color-text-secondary)]">{t.home.continueReading}</p>
               <p className="text-sm font-medium truncate">
-                {surah ? surah.nameSimple : `${t.common.surah} ${lastPosition.surahId}`}
+                {getSurahLabel(lastPosition.surahId, locale) || surah?.nameSimple || `${t.common.surah} ${lastPosition.surahId}`}
                 <span className="text-[var(--color-text-secondary)] font-normal text-xs"> · {t.common.verse} {lastPosition.ayahNumber}</span>
               </p>
             </div>
@@ -169,7 +170,8 @@ function HomePage() {
               </span>
               {visible.map((bm) => {
                 const surah = surahMap.get(bm.surahId);
-                const label = surah ? `${surah.nameSimple} ${bm.ayahNumber}` : `${bm.surahId}:${bm.ayahNumber}`;
+                const name = getSurahLabel(bm.surahId, locale) || surah?.nameSimple || String(bm.surahId);
+                const label = `${name} ${bm.ayahNumber}`;
                 const linkProps = readingMode === "list"
                   ? { to: "/surah/$surahSlug" as const, params: { surahSlug: surahSlug(bm.surahId) }, search: { ayah: bm.ayahNumber } }
                   : { to: "/page/$pageNumber" as const, params: { pageNumber: String(bm.pageNumber) }, search: { ayah: undefined } };

@@ -13,6 +13,8 @@ import { useReadingTracker } from "~/hooks/useReadingTracker";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { surahSlug } from "~/lib/surah-slugs";
+import { getSurahLabel } from "~/lib/surah-names-i18n";
+import { useTranslation } from "~/hooks/useTranslation";
 
 const TOTAL_CHAPTERS = 114;
 
@@ -22,6 +24,7 @@ interface SurahViewProps {
 }
 
 export function SurahView({ surahId, highlightAyah }: SurahViewProps) {
+  const { locale } = useTranslation();
   const showTranslation = useSettingsStore((s) => s.showTranslation);
   const showTajweed = useSettingsStore((s) => s.showTajweed);
   const translationSlug = useSettingsStore((s) => s.translationSlug);
@@ -176,6 +179,7 @@ function SurahPicker({ currentSurahId }: { currentSurahId: number }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const activeRef = useRef<HTMLAnchorElement>(null);
   const navigate = useNavigate();
+  const { locale } = useTranslation();
   const { data: surahs } = useSurahs();
 
   // Dışarı tıklayınca kapat
@@ -263,7 +267,7 @@ function SurahPicker({ currentSurahId }: { currentSurahId: number }) {
                   </span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-sm font-medium truncate">{surah.nameSimple}</span>
+                      <span className="text-sm font-medium truncate">{getSurahLabel(surah.id, locale) || surah.nameSimple}</span>
                       <span className="text-sm shrink-0" dir="rtl" style={{ fontFamily: "var(--font-arabic)" }}>
                         {surah.nameArabic}
                       </span>
