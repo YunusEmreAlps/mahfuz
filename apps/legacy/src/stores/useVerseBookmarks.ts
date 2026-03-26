@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { setSyncTimestamp } from "~/lib/sync-metadata";
 
 export interface VerseBookmark {
   verseKey: string;
@@ -24,14 +25,12 @@ export const useVerseBookmarks = create<VerseBookmarksState>()(
         if (bookmarks.some((b) => b.verseKey === verseKey)) return;
         set({ bookmarks: [...bookmarks, { verseKey, addedAt: Date.now() }] });
         if (typeof localStorage !== "undefined") {
-          const { setSyncTimestamp } = require("~/lib/sync-metadata");
           setSyncTimestamp("preferences", Date.now());
         }
       },
       removeBookmark: (verseKey) => {
         set({ bookmarks: get().bookmarks.filter((b) => b.verseKey !== verseKey) });
         if (typeof localStorage !== "undefined") {
-          const { setSyncTimestamp } = require("~/lib/sync-metadata");
           setSyncTimestamp("preferences", Date.now());
         }
       },
@@ -45,7 +44,6 @@ export const useVerseBookmarks = create<VerseBookmarksState>()(
           set({ bookmarks: [...bookmarks, { verseKey, addedAt: Date.now() }] });
         }
         if (typeof localStorage !== "undefined") {
-          const { setSyncTimestamp } = require("~/lib/sync-metadata");
           setSyncTimestamp("preferences", Date.now());
         }
         return !exists;

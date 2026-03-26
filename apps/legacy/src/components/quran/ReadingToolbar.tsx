@@ -249,7 +249,12 @@ export function ReadingToolbar({ segmentStyle }: { segmentStyle?: boolean } = {}
   const setTheme = useDisplayPrefs((s) => s.setTheme);
   const autoTheme = useDisplayPrefs((s) => s.autoTheme);
   const currentReciterId = useAudioPrefs((s) => s.reciterId);
-  const setReciterId = useAudioPrefs((s) => s.setReciterId);
+  const _setReciterPref = useAudioPrefs((s) => s.setReciterId);
+  const _setReciterAudio = useAudioStore((s) => s.setReciter);
+  const setReciterId = useCallback((id: number) => {
+    _setReciterPref(id);
+    _setReciterAudio(id);
+  }, [_setReciterPref, _setReciterAudio]);
 
   const audioVisible = useAudioStore((s) => s.isVisible);
 

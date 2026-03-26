@@ -162,7 +162,7 @@ export function StatsOverview({ stats, cards }: StatsOverviewProps) {
                 <select
                   value={selectedJuz}
                   onChange={(e) => setSelectedJuz(Number(e.target.value))}
-                  className="rounded-lg bg-[var(--theme-hover-bg)] px-2 py-0.5 text-[11px] font-semibold text-[var(--theme-text)] outline-none cursor-pointer"
+                  className="rounded-lg bg-[var(--theme-hover-bg)] px-2 py-0.5 text-[16px] sm:text-[11px] font-semibold text-[var(--theme-text)] outline-none cursor-pointer"
                 >
                   {Array.from({ length: 30 }, (_, i) => i + 1).map((n) => (
                     <option key={n} value={n}>{t.common.juz} {n}</option>
